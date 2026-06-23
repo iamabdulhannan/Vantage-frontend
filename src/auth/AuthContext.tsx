@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { currentUser } from '@/data/mock';
 import { PlanKey, BillingCycle } from '@/data/currencies';
 import { setCurrencySymbol } from '@/data/format';
 import { api, setToken, isApiEnabled } from '@/api/client';
+import { loadSession, saveSession, clearSession } from './session-storage';
 
 export interface SessionUser {
   id?: string;
@@ -51,6 +52,8 @@ interface AuthContextValue {
   signedIn: boolean;
   /** Reactive JWT — non-null only for a live API session; drives data hydration. */
   token: string | null;
+  /** True while restoring a persisted session on launch (show a splash, don't redirect). */
+  hydrating: boolean;
   /** True when the active session came from the live API (not the local fallback). */
   online: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -99,6 +102,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [tokenState, setTokenState] = useState<string | null>(null);
   const [online, setOnline] = useState(false);
+  const [hydrating, setHydrating] = useState(true);
+
+  // Restore a persisted session on launch.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const s = await loadSession();
+      if (!cancelled && s?.user) {
+        setToken(s.token);
+        setTokenState(s.token);
+        setUser(s.user);
+        setCompany(s.company);
+        if (s.company) setCurrencySymbol(s.company.currencySymbol);
+        setOnline(!!s.token);
+      }
+      if (!cancelled) setHydrating(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Persist any session change (login, register, billing edit, sign-out).
+  useEffect(() => {
+    if (hydrating) return;
+    if (user) saveSession({ token: tokenState, user, company });
+    else clearSession();
+  }, [user, company, tokenState, hydrating]);
 
   const applySession = useCallback((r: any) => {
     setToken(r.token);
@@ -193,7 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, company, signedIn: !!user, token: tokenState, online, signIn, register, updateCompany, signOut }}
+      value={{ user, company, signedIn: !!user, token: tokenState, hydrating, online, signIn, register, updateCompany, signOut }}
     >
       {children}
     </AuthContext.Provider>

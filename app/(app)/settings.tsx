@@ -25,6 +25,7 @@ import { Card } from '@/components/Card';
 import { Avatar } from '@/components/Avatar';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
+import { ConnectionBadge } from '@/components/ConnectionBadge';
 import { currentUser } from '@/data/mock';
 
 function SectionLabel({ children }: { children: string }) {
@@ -116,10 +117,13 @@ export default function Settings() {
 
       {/* Company */}
       <Card elevation={1} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View style={{ gap: 3 }}>
-          <Text variant="caption" tone="subtle" weight="medium" style={{ letterSpacing: 0.4 }}>
-            COMPANY
-          </Text>
+        <View style={{ gap: 4, flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text variant="caption" tone="subtle" weight="medium" style={{ letterSpacing: 0.4 }}>
+              COMPANY
+            </Text>
+            <ConnectionBadge />
+          </View>
           <Text variant="body" weight="bold" numberOfLines={1}>
             {companyName}
           </Text>

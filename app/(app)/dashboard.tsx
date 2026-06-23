@@ -12,35 +12,14 @@ import { Segmented } from '@/components/Segmented';
 import { AreaChart } from '@/components/charts/AreaChart';
 import { DonutChart, DonutLegend } from '@/components/charts/DonutChart';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
-import { Reveal, PulseDot, PressableScale, ProgressBar } from '@/components/motion';
+import { Reveal, PressableScale, ProgressBar } from '@/components/motion';
+import { ConnectionBadge } from '@/components/ConnectionBadge';
 import { AddExpenseSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
 import { useAuth } from '@/auth/AuthContext';
 import { useCompany } from '@/data/company';
 import { kpis, monthlySeries, currentUser, computePayroll } from '@/data/mock';
 import { formatCurrency, relativeDate } from '@/data/format';
-
-function LivePill() {
-  const t = useTheme();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 7,
-        backgroundColor: t.colors.successSoft,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 999,
-      }}
-    >
-      <PulseDot color={t.colors.success} size={7} />
-      <Text variant="micro" weight="bold" style={{ color: t.colors.success, letterSpacing: 0.4 }}>
-        LIVE
-      </Text>
-    </View>
-  );
-}
 
 function MiniMetric({ icon: Icon, label, value, tint }: any) {
   const t = useTheme();
@@ -101,7 +80,7 @@ export default function Dashboard() {
           <Text variant="bodySm" tone="muted" weight="medium">
             {companyName} · {fiscalYear}
           </Text>
-          <LivePill />
+          <ConnectionBadge />
         </View>
       </Reveal>
 

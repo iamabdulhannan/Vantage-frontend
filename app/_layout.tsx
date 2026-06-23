@@ -24,19 +24,22 @@ import { CompanyProvider } from '@/data/company';
 import { StoreProvider } from '@/data/store';
 
 function Gate() {
-  const { signedIn } = useAuth();
+  const { signedIn, hydrating } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const t = useTheme();
 
   useEffect(() => {
+    if (hydrating) return;
     const inApp = segments[0] === '(app)';
     if (!signedIn && inApp) {
       router.replace('/');
     } else if (signedIn && !inApp) {
       router.replace('/(app)/dashboard');
     }
-  }, [signedIn, segments]);
+  }, [signedIn, segments, hydrating]);
+
+  if (hydrating) return <ThemedLoader />;
 
   return (
     <>
