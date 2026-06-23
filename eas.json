@@ -9,18 +9,27 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://vantage-backend-ofp3l4el0-iamabdalhannan-gmailcoms-projects.vercel.app/api"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://vantage-backend-ofp3l4el0-iamabdalhannan-gmailcoms-projects.vercel.app/api"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://vantage-backend-ofp3l4el0-iamabdalhannan-gmailcoms-projects.vercel.app/api"
       }
     }
   },

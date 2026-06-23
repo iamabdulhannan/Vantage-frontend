@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ArrowRight, Check, Minus, Plus, Building2, User, Mail, Lock, Briefcase, Globe } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useAuth } from '@/auth/AuthContext';
-import { useCompany } from '@/data/company';
 import { Text } from '@/components/Text';
 import { Field } from '@/components/Field';
 import { Button } from '@/components/Button';
@@ -34,7 +33,6 @@ export default function Setup() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { register } = useAuth();
-  const { createCompany } = useCompany();
 
   const [step, setStep] = useState(0);
   const [err, setErr] = useState<string | undefined>();
@@ -70,23 +68,23 @@ export default function Setup() {
   };
 
   const finish = () => {
-    createCompany({
+    // Creates the company + owner via the API (or locally if the API is unreachable),
+    // signs the owner in, and the root Gate routes to the dashboard.
+    register({
       name: companyName.trim(),
       industry,
       country: country.trim(),
       currencyCode: selectedCurrency.code,
       currencySymbol: selectedCurrency.symbol,
-      ownerName: ownerName.trim(),
-      ownerRole: role.trim() || 'Founder & CEO',
-      ownerEmail: email.trim(),
       teamSize,
       seats: bill.seats,
       plan,
       billingCycle,
-      billingSince: new Date().toISOString().slice(0, 10),
+      ownerName: ownerName.trim(),
+      ownerRole: role.trim() || 'Founder & CEO',
+      ownerEmail: email.trim(),
+      password,
     });
-    // Sign the owner in — the root Gate then routes to the dashboard.
-    register({ name: ownerName.trim(), role: role.trim() || 'Founder & CEO', email: email.trim() });
   };
 
   const next = () => {

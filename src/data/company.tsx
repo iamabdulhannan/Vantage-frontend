@@ -1,60 +1,43 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { setCurrencySymbol } from './format';
+import React, { createContext, useContext, useCallback, useMemo } from 'react';
 import { company as defaultCompany } from './mock';
 import { PlanKey, BillingCycle } from './currencies';
+import { useAuth, CompanyProfile } from '@/auth/AuthContext';
+import { api, isApiEnabled, getToken } from '@/api/client';
 
-export interface CompanyProfile {
-  name: string;
-  industry: string;
-  country: string;
-  currencyCode: string;
-  currencySymbol: string;
-  ownerName: string;
-  ownerRole: string;
-  ownerEmail: string;
-  teamSize: string;
-  seats: number;
-  plan: PlanKey;
-  billingCycle: BillingCycle;
-  /** ISO date the current billing period started. */
-  billingSince: string;
-}
+export type { CompanyProfile } from '@/auth/AuthContext';
 
 interface CompanyContextValue {
   company: CompanyProfile | null;
   /** Display name — falls back to the seed company before setup. */
   name: string;
   fiscalYear: string;
-  createCompany: (profile: CompanyProfile) => void;
-  /** Change plan / seats / cycle after signup; resets the billing period to now. */
+  /** Change plan / seats / cycle; optimistic locally + synced to the API when online. */
   updateBilling: (input: { plan?: PlanKey; seats?: number; billingCycle?: BillingCycle }) => void;
 }
 
 const CompanyContext = createContext<CompanyContextValue | null>(null);
 
 export function CompanyProvider({ children }: { children: React.ReactNode }) {
-  const [company, setCompany] = useState<CompanyProfile | null>(null);
-
-  const createCompany = useCallback((profile: CompanyProfile) => {
-    setCurrencySymbol(profile.currencySymbol);
-    setCompany(profile);
-  }, []);
+  const { company, updateCompany } = useAuth();
 
   const updateBilling = useCallback(
     (input: { plan?: PlanKey; seats?: number; billingCycle?: BillingCycle }) => {
-      setCompany((prev) =>
-        prev
-          ? {
-              ...prev,
-              plan: input.plan ?? prev.plan,
-              seats: input.seats ?? prev.seats,
-              billingCycle: input.billingCycle ?? prev.billingCycle,
-              billingSince: new Date().toISOString().slice(0, 10),
-            }
-          : prev
-      );
+      if (company) {
+        // Optimistic local update so the UI reacts instantly.
+        updateCompany({
+          ...company,
+          plan: input.plan ?? company.plan,
+          seats: input.seats ?? company.seats,
+          billingCycle: input.billingCycle ?? company.billingCycle,
+          billingSince: new Date().toISOString().slice(0, 10),
+        });
+      }
+      // Best-effort persistence when a live session is available.
+      if (isApiEnabled() && getToken()) {
+        api.billing.update(input).catch(() => {});
+      }
     },
-    []
+    [company, updateCompany],
   );
 
   const value = useMemo<CompanyContextValue>(
@@ -62,10 +45,9 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       company,
       name: company?.name ?? defaultCompany.name,
       fiscalYear: defaultCompany.fiscalYear,
-      createCompany,
       updateBilling,
     }),
-    [company, createCompany, updateBilling]
+    [company, updateBilling],
   );
 
   return <CompanyContext.Provider value={value}>{children}</CompanyContext.Provider>;

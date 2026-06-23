@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import {
   customers as seedCustomers,
   expenseBreakdown as seedExpenses,
@@ -12,6 +12,38 @@ import {
   Employee,
   Partner,
 } from './mock';
+import { useAuth } from '@/auth/AuthContext';
+import { api, isApiEnabled, getToken } from '@/api/client';
+
+/** Map an API customer (entries with kind/amount) to the local Customer shape. */
+function mapApiCustomer(c: any): Customer {
+  const ledger: LedgerEntry[] = (c.entries ?? []).map((e: any) => ({
+    id: e.id,
+    date: String(e.date).slice(0, 10),
+    memo: e.memo,
+    type: e.kind === 'gave' ? 'invoice' : 'payment',
+    debit: e.kind === 'gave' ? Number(e.amount) : 0,
+    credit: e.kind === 'got' ? Number(e.amount) : 0,
+    balance: 0,
+  }));
+  return recalc({
+    id: c.id,
+    name: c.name,
+    company: c.business ?? '',
+    phone: c.phone ?? undefined,
+    email: c.email ?? undefined,
+    initials: c.initials,
+    balance: 0,
+    status: 'settled',
+    lastActivity: c.lastActivity ? String(c.lastActivity).slice(0, 10) : new Date().toISOString().slice(0, 10),
+    ledger,
+  });
+}
+
+/** Fire an API mutation only when a live session exists; never throws. */
+function sync(fn: () => Promise<unknown>) {
+  if (isApiEnabled() && getToken()) fn().catch(() => {});
+}
 
 export interface ActivityItem {
   id: string;
@@ -95,6 +127,59 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [activity, setActivity] = useState<ActivityItem[]>(() => seedActivity.map((a) => ({ ...a })));
   const [receipts, setReceipts] = useState(0);
 
+  const { token } = useAuth();
+
+  // When a live session signs in, replace the seed data with the company's real data.
+  useEffect(() => {
+    if (!token || !isApiEnabled()) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const [cs, ex, pr, em]: any[] = await Promise.all([
+          api.customers.list(),
+          api.expenses.list(),
+          api.partners.list(),
+          api.employees.list(),
+        ]);
+        if (cancelled) return;
+        setCustomers((cs.customers ?? []).map(mapApiCustomer));
+        setExpenses((ex.expenses ?? []).map((e: any) => ({ label: e.label, value: Number(e.value), color: e.color })));
+        setPartners(
+          (pr.partners ?? []).map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            region: p.region,
+            contact: p.contact ?? undefined,
+            phone: p.phone ?? undefined,
+            email: p.email ?? undefined,
+            share: p.share,
+            revenue: Number(p.revenue),
+            delta: p.delta ?? 0,
+            status: p.status,
+          })),
+        );
+        setEmployees(
+          (em.employees ?? []).map((e: any) => ({
+            id: e.id,
+            name: e.name,
+            role: e.role,
+            dept: e.dept,
+            initials: e.initials,
+            salary: Number(e.salary),
+            status: e.status,
+          })),
+        );
+        setActivity([]);
+        setReceipts(0);
+      } catch {
+        // Keep the seed/local data if the API is unreachable.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
   const logActivity = useCallback((item: Omit<ActivityItem, 'id' | 'when'>) => {
     setActivity((prev) => [{ id: `act${Date.now()}`, when: nowISO(), ...item }, ...prev]);
   }, []);
@@ -137,6 +222,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         ledger,
       });
       setCustomers((prev) => [next, ...prev]);
+      sync(() =>
+        api.customers.create({
+          name: input.name,
+          business: input.company,
+          phone: input.phone,
+          email: input.email,
+          openingBalance: opening || undefined,
+          openingKind: input.openingKind,
+        }),
+      );
       return id;
     },
     []
@@ -164,6 +259,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       );
       // A "got" entry is a payment received — count it toward live revenue.
       if (!gave) setReceipts((r) => r + input.amount);
+      sync(() => api.customers.addEntry(customerId, { kind: input.kind, amount: input.amount, memo: input.memo }));
       logActivity({
         who: who || 'Customer',
         what: gave ? (input.memo.trim() || 'Credit extended') : 'Payment received',
@@ -180,6 +276,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const color = EXPENSE_COLORS[prev.length % EXPENSE_COLORS.length];
         return [...prev, { label: input.label.trim(), value: input.value, color }];
       });
+      sync(() => api.expenses.create({ label: input.label, value: input.value }));
       logActivity({ who: input.label.trim(), what: 'Expense recorded', amount: input.value, type: 'invoice' });
     },
     [logActivity]
@@ -194,6 +291,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (disbursed > 0) {
       logActivity({ who: 'Payroll', what: 'Salaries disbursed', amount: disbursed, type: 'payment' });
     }
+    sync(() => api.employees.runPayroll());
     return disbursed;
   }, [logActivity]);
 
@@ -208,10 +306,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       status: 'pending',
     };
     setEmployees((prev) => [...prev, employee]);
+    sync(() => api.employees.create({ name: input.name, role: input.role, dept: input.dept, salary: input.salary }));
   }, []);
 
   const removeEmployee = useCallback((id: string) => {
     setEmployees((prev) => prev.filter((e) => e.id !== id));
+    sync(() => api.employees.remove(id));
   }, []);
 
   const incrementSalary = useCallback(
@@ -228,6 +328,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (amount > 0 && who) {
         logActivity({ who, what: 'Salary increment', amount, type: 'invoice' });
       }
+      sync(() => api.employees.increment(id, amount));
     },
     [logActivity]
   );
@@ -247,6 +348,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: 'active',
       };
       setPartners((prev) => [...prev, partner]);
+      sync(() =>
+        api.partners.create({
+          name: input.name,
+          region: input.region,
+          share: input.share,
+          revenue: input.revenue,
+          contact: input.contact,
+          phone: input.phone,
+          email: input.email,
+        }),
+      );
     },
     []
   );
