@@ -63,7 +63,8 @@ export const api = {
   },
   expenses: {
     list: () => request('/expenses'),
-    create: (body: { label: string; value: number }) => request('/expenses', { method: 'POST', body }),
+    create: (body: { label: string; value: number; note?: string }) => request('/expenses', { method: 'POST', body }),
+    remove: (id: string) => request(`/expenses/${id}`, { method: 'DELETE' }),
   },
   partners: {
     list: () => request('/partners'),

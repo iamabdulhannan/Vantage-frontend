@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FileText, ArrowDownLeft, Flame, Hourglass, Users2, ArrowRight, Plus } from 'lucide-react-native';
@@ -18,6 +18,7 @@ import { AddExpenseSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
 import { useAuth } from '@/auth/AuthContext';
 import { useCompany } from '@/data/company';
+import { api, isApiEnabled } from '@/api/client';
 import { kpis, monthlySeries, currentUser, computePayroll } from '@/data/mock';
 import { formatCurrency, relativeDate } from '@/data/format';
 
@@ -44,18 +45,35 @@ export default function Dashboard() {
   const [period, setPeriod] = useState('12M');
   const [expenseOpen, setExpenseOpen] = useState(false);
   const { expenses, employees, activity, receipts } = useStore();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { name: companyName, fiscalYear } = useCompany();
   const greetName = (user?.name ?? currentUser.name).split(' ')[0];
   const initials = user?.initials ?? currentUser.initials;
-  const totalExpense = expenses.reduce((s, d) => s + d.value, 0);
   const pay = computePayroll(employees);
 
-  // Live KPIs derived from the store: revenue grows with payments received,
-  // expenses with recorded spend, and profit/burn/runway follow from those.
-  const revenue = kpis[0].value + receipts;
-  const capital = kpis[1].value;
-  const profit = revenue - totalExpense;
+  // Pull the fully-aggregated dashboard from the API when signed in live;
+  // refetch after mutations. Falls back to local computation when offline.
+  const [agg, setAgg] = useState<any | null>(null);
+  useEffect(() => {
+    if (!token || !isApiEnabled()) {
+      setAgg(null);
+      return;
+    }
+    let cancelled = false;
+    api.dashboard
+      .get()
+      .then((d) => !cancelled && setAgg(d))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [token, receipts, expenses.length, employees.length]);
+
+  const localExpense = expenses.reduce((s, d) => s + d.value, 0);
+  const revenue = agg ? agg.kpis.revenue : kpis[0].value + receipts;
+  const capital = agg ? agg.kpis.capital : kpis[1].value;
+  const totalExpense = agg ? agg.kpis.expenses : localExpense;
+  const profit = agg ? agg.kpis.profit : revenue - totalExpense;
   const liveKpis = [
     { ...kpis[0], value: revenue },
     { ...kpis[1], value: capital },
@@ -64,8 +82,16 @@ export default function Dashboard() {
   ];
 
   // CEO metrics
-  const monthlyBurn = Math.round(totalExpense / 12);
-  const runwayMonths = monthlyBurn > 0 ? (capital / monthlyBurn).toFixed(1) : '∞';
+  const monthlyBurn = agg ? agg.cash.monthlyBurn : Math.round(localExpense / 12);
+  const runwayMonths = agg
+    ? String(agg.cash.runwayMonths ?? '∞')
+    : monthlyBurn > 0
+    ? (capital / monthlyBurn).toFixed(1)
+    : '∞';
+
+  // Charts/activity prefer live data, fall back to the local store.
+  const donutData = agg && agg.expenseBreakdown?.length ? agg.expenseBreakdown : expenses;
+  const activityList = agg && agg.activity?.length ? agg.activity : activity;
 
   let idx = 0;
 
@@ -207,14 +233,14 @@ export default function Dashboard() {
       <Reveal index={idx++}>
         <Card elevation={1} style={{ gap: 18 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ gap: 2 }}>
+            <Pressable onPress={() => router.push('/(app)/expenses')} hitSlop={6} style={{ gap: 2, flex: 1 }} accessibilityRole="button">
               <Text variant="h3" weight="bold">
                 Expense Breakdown
               </Text>
-              <Text variant="caption" tone="subtle">
-                Where capital is deployed
+              <Text variant="caption" tone="accent" weight="semibold">
+                Manage all expenses →
               </Text>
-            </View>
+            </Pressable>
             <Pressable
               onPress={() => setExpenseOpen(true)}
               nativeID="open-expense"
@@ -236,8 +262,8 @@ export default function Dashboard() {
             </Pressable>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
-            <DonutChart data={expenses} centerValue={formatCurrency(totalExpense, { compact: true })} centerLabel="Total" />
-            <DonutLegend data={expenses} />
+            <DonutChart data={donutData} centerValue={formatCurrency(totalExpense, { compact: true })} centerLabel="Total" />
+            <DonutLegend data={donutData} />
           </View>
         </Card>
       </Reveal>
@@ -255,7 +281,7 @@ export default function Dashboard() {
               </Text>
             </Pressable>
           </View>
-          {activity.slice(0, 6).map((a) => {
+          {activityList.slice(0, 6).map((a: any) => {
             const isPayment = a.type === 'payment';
             const Icon = isPayment ? ArrowDownLeft : FileText;
             return (

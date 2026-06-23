@@ -20,6 +20,8 @@ export interface CompanyProfile {
   country?: string;
   currencyCode: string;
   currencySymbol: string;
+  capital: number;
+  revenue: number;
   ownerName: string;
   ownerRole: string;
   ownerEmail: string;
@@ -36,6 +38,8 @@ export interface RegisterInput {
   country?: string;
   currencyCode: string;
   currencySymbol: string;
+  capital: number;
+  revenue: number;
   teamSize?: string;
   seats: number;
   plan: PlanKey;
@@ -84,6 +88,8 @@ function mapCompany(c: any, u: any): CompanyProfile {
     country: c.country ?? undefined,
     currencyCode: c.currencyCode,
     currencySymbol: c.currencySymbol,
+    capital: Number(c.capital ?? 0),
+    revenue: Number(c.revenue ?? 0),
     ownerName: u.name,
     ownerRole: u.role,
     ownerEmail: u.email,
@@ -170,6 +176,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           country: input.country,
           currencyCode: input.currencyCode,
           currencySymbol: input.currencySymbol,
+          capital: input.capital,
+          revenue: input.revenue,
           teamSize: input.teamSize,
           seats: input.seats,
           plan: input.plan,
@@ -198,6 +206,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           country: input.country,
           currencyCode: input.currencyCode,
           currencySymbol: input.currencySymbol,
+          capital: input.capital,
+          revenue: input.revenue,
           ownerName: input.ownerName,
           ownerRole: input.ownerRole,
           ownerEmail: input.ownerEmail,

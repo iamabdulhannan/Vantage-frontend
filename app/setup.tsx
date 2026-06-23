@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, ArrowRight, Check, Minus, Plus, Building2, User, Mail, Lock, Briefcase, Globe } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Check, Minus, Plus, Building2, User, Mail, Lock, Briefcase, Globe, Wallet, TrendingUp } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useAuth } from '@/auth/AuthContext';
 import { Text } from '@/components/Text';
@@ -42,8 +42,14 @@ export default function Setup() {
   const [industry, setIndustry] = useState(INDUSTRIES[0]);
   const [country, setCountry] = useState('');
 
-  // Step 1 — currency
+  // Step 1 — currency + opening financials
   const [currencyCode, setCurrencyCode] = useState('PKR');
+  const [capital, setCapital] = useState('');
+  const [revenue, setRevenue] = useState('');
+  const toNum = (s: string) => {
+    const n = parseFloat(s.replace(/[^0-9.]/g, ''));
+    return Number.isFinite(n) ? n : 0;
+  };
 
   // Step 2 — account
   const [ownerName, setOwnerName] = useState('');
@@ -76,6 +82,8 @@ export default function Setup() {
       country: country.trim(),
       currencyCode: selectedCurrency.code,
       currencySymbol: selectedCurrency.symbol,
+      capital: toNum(capital),
+      revenue: toNum(revenue),
       teamSize,
       seats: bill.seats,
       plan,
@@ -234,6 +242,29 @@ export default function Setup() {
                       </PressableScale>
                     );
                   })}
+                </View>
+
+                {/* Opening financials */}
+                <View style={{ gap: 14, marginTop: 4 }}>
+                  <Text variant="bodySm" weight="medium" tone="muted">
+                    Opening financials (optional)
+                  </Text>
+                  <Field
+                    label={`Working capital (${selectedCurrency.symbol})`}
+                    icon={Wallet}
+                    value={capital}
+                    onChangeText={setCapital}
+                    placeholder="0"
+                    keyboardType="numeric"
+                  />
+                  <Field
+                    label={`Total revenue (${selectedCurrency.symbol})`}
+                    icon={TrendingUp}
+                    value={revenue}
+                    onChangeText={setRevenue}
+                    placeholder="0"
+                    keyboardType="numeric"
+                  />
                 </View>
               </View>
             </Reveal>

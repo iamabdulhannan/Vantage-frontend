@@ -66,6 +66,7 @@ export default function AppTabs() {
       />
       {/* Routable but hidden from the tab bar */}
       <Tabs.Screen name="billing" options={{ href: null }} />
+      <Tabs.Screen name="expenses" options={{ href: null }} />
     </Tabs>
   );
 }

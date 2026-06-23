@@ -98,7 +98,9 @@ interface StoreValue {
     openingKind?: 'get' | 'give';
   }) => string;
   addEntry: (customerId: string, input: { kind: 'gave' | 'got'; amount: number; memo: string }) => void;
-  addExpense: (input: { label: string; value: number }) => void;
+  addExpense: (input: { label: string; value: number; note?: string }) => void;
+  /** Delete an expense record. */
+  removeExpense: (id: string) => void;
   addEmployee: (input: { name: string; role: string; dept: string; salary: number }) => void;
   /** Permanently remove an employee from payroll (super-admin action). */
   removeEmployee: (id: string) => void;
@@ -121,7 +123,7 @@ const StoreContext = createContext<StoreValue | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [customers, setCustomers] = useState<Customer[]>(() => seedCustomers.map((c) => recalc(c)));
-  const [expenses, setExpenses] = useState<ExpenseSlice[]>(() => seedExpenses.map((e) => ({ ...e })));
+  const [expenses, setExpenses] = useState<ExpenseSlice[]>(() => seedExpenses.map((e, i) => ({ ...e, id: `seed-exp-${i}` })));
   const [employees, setEmployees] = useState<Employee[]>(() => seedEmployees.map((e) => ({ ...e })));
   const [partners, setPartners] = useState<Partner[]>(() => seedPartners.map((p) => ({ ...p })));
   const [activity, setActivity] = useState<ActivityItem[]>(() => seedActivity.map((a) => ({ ...a })));
@@ -143,7 +145,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         ]);
         if (cancelled) return;
         setCustomers((cs.customers ?? []).map(mapApiCustomer));
-        setExpenses((ex.expenses ?? []).map((e: any) => ({ label: e.label, value: Number(e.value), color: e.color })));
+        setExpenses(
+          (ex.expenses ?? []).map((e: any) => ({
+            id: e.id,
+            label: e.label,
+            value: Number(e.value),
+            color: e.color,
+            note: e.note ?? undefined,
+            date: e.date ? String(e.date).slice(0, 10) : undefined,
+          })),
+        );
         setPartners(
           (pr.partners ?? []).map((p: any) => ({
             id: p.id,
@@ -271,16 +282,31 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addExpense = useCallback(
-    (input: { label: string; value: number }) => {
+    (input: { label: string; value: number; note?: string }) => {
       setExpenses((prev) => {
         const color = EXPENSE_COLORS[prev.length % EXPENSE_COLORS.length];
-        return [...prev, { label: input.label.trim(), value: input.value, color }];
+        return [
+          ...prev,
+          {
+            id: `exp${Date.now()}`,
+            label: input.label.trim(),
+            value: input.value,
+            color,
+            note: input.note?.trim() || undefined,
+            date: todayISO(),
+          },
+        ];
       });
-      sync(() => api.expenses.create({ label: input.label, value: input.value }));
+      sync(() => api.expenses.create({ label: input.label, value: input.value, note: input.note }));
       logActivity({ who: input.label.trim(), what: 'Expense recorded', amount: input.value, type: 'invoice' });
     },
     [logActivity]
   );
+
+  const removeExpense = useCallback((id: string) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
+    sync(() => api.expenses.remove(id));
+  }, []);
 
   const runPayroll = useCallback(() => {
     let disbursed = 0;
@@ -374,6 +400,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       addCustomer,
       addEntry,
       addExpense,
+      removeExpense,
       addEmployee,
       removeEmployee,
       incrementSalary,
@@ -390,6 +417,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       addCustomer,
       addEntry,
       addExpense,
+      removeExpense,
       addEmployee,
       removeEmployee,
       incrementSalary,

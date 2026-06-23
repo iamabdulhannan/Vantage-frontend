@@ -232,16 +232,21 @@ export function AddEntrySheet({
 
 /* -------------------------------------------------------------------------- */
 
+const EXPENSE_CATEGORIES = ['Payroll', 'Operations', 'Marketing', 'R&D', 'Facilities', 'Travel', 'Software', 'Taxes', 'Other'];
+
 export function AddExpenseSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const t = useTheme();
   const { addExpense } = useStore();
   const [label, setLabel] = useState('');
   const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
   const [error, setError] = useState<string | undefined>();
 
   useEffect(() => {
     if (visible) {
       setLabel('');
       setAmount('');
+      setNote('');
       setError(undefined);
     }
   }, [visible]);
@@ -256,15 +261,40 @@ export function AddExpenseSheet({ visible, onClose }: { visible: boolean; onClos
       setError('Enter an amount greater than 0');
       return;
     }
-    addExpense({ label, value });
+    addExpense({ label, value, note });
     onClose();
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Add expense" subtitle="Record a company expense">
+    <Sheet visible={visible} onClose={onClose} title="Add expense" subtitle="Record any kind of company expense">
       <View style={{ gap: 16 }}>
         <Field label="Category" icon={Tag} value={label} onChangeText={setLabel} placeholder="e.g. Travel" autoFocus />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {EXPENSE_CATEGORIES.map((c) => {
+            const active = c.toLowerCase() === label.trim().toLowerCase();
+            return (
+              <PressableScale
+                key={c}
+                onPress={() => setLabel(c)}
+                scaleTo={0.96}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
+                  borderRadius: 999,
+                  backgroundColor: active ? t.colors.accentSoft : t.colors.surfaceAlt,
+                  borderWidth: 1,
+                  borderColor: active ? t.colors.accent : 'transparent',
+                }}
+              >
+                <Text variant="caption" weight={active ? 'semibold' : 'regular'} tone={active ? 'accent' : 'muted'}>
+                  {c}
+                </Text>
+              </PressableScale>
+            );
+          })}
+        </View>
         <Field label={`Amount (${currencySymbol()})`} icon={Hash} value={amount} onChangeText={setAmount} placeholder="0" keyboardType="numeric" error={error} />
+        <Field label="Note (optional)" icon={FileText} value={note} onChangeText={setNote} placeholder="e.g. Q3 ad campaign" />
         <Button label="Add expense" onPress={submit} nativeID="submit-expense" />
       </View>
     </Sheet>

@@ -16,9 +16,12 @@ export interface SeriesPoint {
 }
 
 export interface ExpenseSlice {
+  id?: string;
   label: string;
   value: number;
   color: string;
+  note?: string;
+  date?: string;
 }
 
 export interface Partner {

@@ -99,7 +99,7 @@ export default function Login() {
             </Text>
           </Pressable>
 
-          <Button label="Sign in" onPress={submit} loading={loading} size="lg" />
+          <Button label="Sign in" onPress={submit} loading={loading} size="lg" nativeID="login-submit" />
 
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 4 }}>
             <ShieldCheck size={14} color={t.colors.success} strokeWidth={2.2} />

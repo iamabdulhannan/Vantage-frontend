@@ -11,7 +11,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://vantage-backend-ofp3l4el0-iamabdalhannan-gmailcoms-projects.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://vantage-backend-seven.vercel.app/api"
       }
     },
     "preview": {
@@ -20,7 +20,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://vantage-backend-ofp3l4el0-iamabdalhannan-gmailcoms-projects.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://vantage-backend-seven.vercel.app/api"
       }
     },
     "production": {
@@ -29,7 +29,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://vantage-backend-ofp3l4el0-iamabdalhannan-gmailcoms-projects.vercel.app/api"
+        "EXPO_PUBLIC_API_URL": "https://vantage-backend-seven.vercel.app/api"
       }
     }
   },
