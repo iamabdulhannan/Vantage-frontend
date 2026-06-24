@@ -10,9 +10,12 @@ import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, PressableScale } from '@/components/motion';
-import { AddEntrySheet } from '@/components/sheets';
+import { AddEntrySheet, EditEntrySheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { useCompany } from '@/data/company';
+import { shareStatement } from '@/utils/statement';
 import { formatCurrency, formatDate } from '@/data/format';
+import type { LedgerEntry } from '@/data/mock';
 
 const COL = 84;
 
@@ -50,8 +53,11 @@ export default function LedgerDetail() {
   const t = useTheme();
   const router = useRouter();
   const { customers } = useStore();
+  const { name: companyName } = useCompany();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [entryKind, setEntryKind] = useState<'gave' | 'got' | null>(null);
+  const [editEntry, setEditEntry] = useState<LedgerEntry | null>(null);
+  const [sharing, setSharing] = useState(false);
   const customer = customers.find((c) => c.id === id);
 
   if (!customer) {
@@ -74,6 +80,17 @@ export default function LedgerDetail() {
 
   // most recent last -> show running balance per row
   const rows = customer.ledger;
+
+  const onShare = async () => {
+    try {
+      setSharing(true);
+      await shareStatement(customer, { companyName });
+    } catch {
+      // ignore — user cancelled or share unavailable
+    } finally {
+      setSharing(false);
+    }
+  };
 
   let idx = 0;
 
@@ -109,20 +126,23 @@ export default function LedgerDetail() {
             </Text>
           </View>
           <Pressable
+            onPress={onShare}
+            disabled={sharing}
             hitSlop={10}
-            accessibilityLabel="Share statement"
+            accessibilityLabel="Share statement as PDF"
             style={{
               width: 42,
               height: 42,
               borderRadius: 14,
-              backgroundColor: t.colors.surface,
+              backgroundColor: t.colors.accentSoft,
               borderWidth: 1,
-              borderColor: t.colors.border,
+              borderColor: t.colors.accent,
               alignItems: 'center',
               justifyContent: 'center',
+              opacity: sharing ? 0.6 : 1,
             }}
           >
-            <Share2 size={18} color={t.colors.text} strokeWidth={2.2} />
+            <Share2 size={18} color={t.colors.accent} strokeWidth={2.2} />
           </Pressable>
         </View>
       </Reveal>
@@ -196,7 +216,10 @@ export default function LedgerDetail() {
           const gave = e.debit > 0;
           return (
             <Reveal key={e.id} index={i} delay={160}>
-              <View
+              <PressableScale
+                onPress={() => setEditEntry(e)}
+                scaleTo={0.98}
+                accessibilityLabel={`Edit ${e.memo}`}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -220,20 +243,29 @@ export default function LedgerDetail() {
                 <Text variant="bodySm" weight="bold" mono style={{ width: COL, textAlign: 'right', color: !gave ? t.colors.success : t.colors.textSubtle }}>
                   {!gave ? formatCurrency(e.credit, { compact: true }) : '—'}
                 </Text>
-              </View>
+              </PressableScale>
             </Reveal>
           );
         })}
       </Card>
 
-      {customer.id && (
-        <AddEntrySheet
-          visible={entryKind !== null}
-          kind={entryKind ?? 'gave'}
-          customerId={customer.id}
-          onClose={() => setEntryKind(null)}
-        />
-      )}
+      {/* Share as PDF */}
+      <Reveal index={idx++}>
+        <Button label="Share statement (PDF)" icon={Share2} variant="secondary" onPress={onShare} loading={sharing} />
+      </Reveal>
+
+      <AddEntrySheet
+        visible={entryKind !== null}
+        kind={entryKind ?? 'gave'}
+        customerId={customer.id}
+        onClose={() => setEntryKind(null)}
+      />
+      <EditEntrySheet
+        visible={editEntry !== null}
+        entry={editEntry}
+        customerId={customer.id}
+        onClose={() => setEditEntry(null)}
+      />
     </Screen>
   );
 }

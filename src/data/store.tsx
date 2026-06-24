@@ -98,6 +98,10 @@ interface StoreValue {
     openingKind?: 'get' | 'give';
   }) => string;
   addEntry: (customerId: string, input: { kind: 'gave' | 'got'; amount: number; memo: string }) => void;
+  /** Edit an existing ledger entry. */
+  updateEntry: (customerId: string, entryId: string, input: { kind?: 'gave' | 'got'; amount?: number; memo?: string }) => void;
+  /** Delete a ledger entry. */
+  removeEntry: (customerId: string, entryId: string) => void;
   addExpense: (input: { label: string; value: number; note?: string }) => void;
   /** Delete an expense record. */
   removeExpense: (id: string) => void;
@@ -283,6 +287,39 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [logActivity]
   );
 
+  const updateEntry = useCallback(
+    (customerId: string, entryId: string, input: { kind?: 'gave' | 'got'; amount?: number; memo?: string }) => {
+      setCustomers((prev) =>
+        prev.map((c) => {
+          if (c.id !== customerId) return c;
+          const ledger = c.ledger.map((e) => {
+            if (e.id !== entryId) return e;
+            const kind = input.kind ?? (e.debit > 0 ? 'gave' : 'got');
+            const amount = input.amount ?? (e.debit > 0 ? e.debit : e.credit);
+            const gave = kind === 'gave';
+            return {
+              ...e,
+              memo: input.memo ?? e.memo,
+              type: gave ? 'invoice' : ('payment' as LedgerEntry['type']),
+              debit: gave ? amount : 0,
+              credit: gave ? 0 : amount,
+            };
+          });
+          return recalc({ ...c, lastActivity: todayISO(), ledger });
+        })
+      );
+      sync(() => api.customers.updateEntry(customerId, entryId, input));
+    },
+    []
+  );
+
+  const removeEntry = useCallback((customerId: string, entryId: string) => {
+    setCustomers((prev) =>
+      prev.map((c) => (c.id !== customerId ? c : recalc({ ...c, ledger: c.ledger.filter((e) => e.id !== entryId) }))),
+    );
+    sync(() => api.customers.removeEntry(customerId, entryId));
+  }, []);
+
   const addExpense = useCallback(
     (input: { label: string; value: number; note?: string }) => {
       setExpenses((prev) => {
@@ -401,6 +438,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       receipts,
       addCustomer,
       addEntry,
+      updateEntry,
+      removeEntry,
       addExpense,
       removeExpense,
       addEmployee,
@@ -419,6 +458,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       receipts,
       addCustomer,
       addEntry,
+      updateEntry,
+      removeEntry,
       addExpense,
       removeExpense,
       addEmployee,

@@ -10,7 +10,7 @@ import { Avatar } from './Avatar';
 import { Badge } from './Badge';
 import { PressableScale } from './motion';
 import { useStore } from '@/data/store';
-import { Employee } from '@/data/mock';
+import { Employee, LedgerEntry } from '@/data/mock';
 import { currencySymbol, formatCurrency } from '@/data/format';
 
 function parseAmount(s: string): number {
@@ -225,6 +225,104 @@ export function AddEntrySheet({
         />
         <Field label="Note (optional)" icon={FileText} value={memo} onChangeText={setMemo} placeholder={isGave ? 'e.g. Goods supplied' : 'e.g. Cash payment'} />
         <ColorButton label={isGave ? 'Save — You Gave' : 'Save — You Got'} color={color} onPress={submit} />
+      </View>
+    </Sheet>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+
+export function EditEntrySheet({
+  visible,
+  onClose,
+  customerId,
+  entry,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  customerId: string;
+  entry: LedgerEntry | null;
+}) {
+  const t = useTheme();
+  const { updateEntry, removeEntry } = useStore();
+  const [kind, setKind] = useState<'gave' | 'got'>('gave');
+  const [amount, setAmount] = useState('');
+  const [memo, setMemo] = useState('');
+  const [error, setError] = useState<string | undefined>();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (visible && entry) {
+      const gave = entry.debit > 0;
+      setKind(gave ? 'gave' : 'got');
+      setAmount(String(gave ? entry.debit : entry.credit));
+      setMemo(entry.memo);
+      setError(undefined);
+      setConfirmDelete(false);
+    }
+  }, [visible, entry?.id]);
+
+  if (!entry) return null;
+
+  const save = () => {
+    const value = parseAmount(amount);
+    if (value <= 0) {
+      setError('Enter an amount greater than 0');
+      return;
+    }
+    updateEntry(customerId, entry.id, { kind, amount: value, memo });
+    onClose();
+  };
+
+  const del = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    removeEntry(customerId, entry.id);
+    onClose();
+  };
+
+  const pill = (key: 'gave' | 'got', label: string, color: string) => {
+    const active = kind === key;
+    return (
+      <PressableScale
+        onPress={() => setKind(key)}
+        style={{
+          flex: 1,
+          height: 44,
+          borderRadius: t.radius.md,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: active ? color : t.colors.surfaceAlt,
+          borderWidth: 1,
+          borderColor: active ? color : t.colors.border,
+        }}
+      >
+        <Text variant="bodySm" weight="semibold" style={{ color: active ? '#FFFFFF' : t.colors.textMuted }}>
+          {label}
+        </Text>
+      </PressableScale>
+    );
+  };
+
+  return (
+    <Sheet visible={visible} onClose={onClose} title="Edit entry" subtitle="Update or delete this transaction">
+      <View style={{ gap: 16 }}>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          {pill('gave', 'You gave', t.colors.danger)}
+          {pill('got', 'You got', t.colors.success)}
+        </View>
+        <Field label={`Amount (${currencySymbol()})`} icon={Hash} value={amount} onChangeText={setAmount} placeholder="0" keyboardType="numeric" error={error} />
+        <Field label="Note (optional)" icon={FileText} value={memo} onChangeText={setMemo} placeholder="e.g. Goods supplied" />
+        <Button label="Save changes" onPress={save} nativeID="save-entry" />
+        <Button
+          label={confirmDelete ? 'Tap again to confirm delete' : 'Delete entry'}
+          variant="danger"
+          icon={Trash2}
+          onPress={del}
+          nativeID="delete-entry"
+        />
       </View>
     </Sheet>
   );

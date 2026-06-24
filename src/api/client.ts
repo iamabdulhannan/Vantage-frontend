@@ -60,6 +60,10 @@ export const api = {
     get: (id: string) => request(`/customers/${id}`),
     addEntry: (id: string, body: { kind: 'gave' | 'got'; amount: number; memo?: string }) =>
       request(`/customers/${id}/entries`, { method: 'POST', body }),
+    updateEntry: (id: string, entryId: string, body: { kind?: 'gave' | 'got'; amount?: number; memo?: string }) =>
+      request(`/customers/${id}/entries/${entryId}`, { method: 'PATCH', body }),
+    removeEntry: (id: string, entryId: string) =>
+      request(`/customers/${id}/entries/${entryId}`, { method: 'DELETE' }),
   },
   expenses: {
     list: () => request('/expenses'),
