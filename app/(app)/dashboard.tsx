@@ -83,11 +83,14 @@ export default function Dashboard() {
   const capital = agg ? agg.kpis.capital : kpis[1].value;
   const totalExpense = agg ? agg.kpis.expenses : localExpense;
   const profit = agg ? agg.kpis.profit : revenue - totalExpense;
+  // Deltas/sparklines come from real month-over-month data when live; the StatCard hides
+  // them when there's no history (so a brand-new company shows no fabricated growth).
+  const tr = agg?.trends;
   const liveKpis = [
-    { ...kpis[0], value: revenue },
-    { ...kpis[1], value: capital },
-    { ...kpis[2], value: totalExpense },
-    { ...kpis[3], value: profit },
+    { ...kpis[0], value: revenue, ...(tr ? { delta: tr.revenue?.delta ?? null, spark: tr.revenue?.spark ?? [] } : {}) },
+    { ...kpis[1], value: capital, ...(tr ? { delta: tr.capital?.delta ?? null, spark: tr.capital?.spark ?? [] } : {}) },
+    { ...kpis[2], value: totalExpense, ...(tr ? { delta: tr.expenses?.delta ?? null, spark: tr.expenses?.spark ?? [] } : {}) },
+    { ...kpis[3], value: profit, ...(tr ? { delta: tr.profit?.delta ?? null, spark: tr.profit?.spark ?? [] } : {}) },
   ];
 
   // CEO metrics
@@ -101,6 +104,7 @@ export default function Dashboard() {
   // Charts/activity prefer live data, fall back to the local store.
   const donutData = agg && agg.expenseBreakdown?.length ? agg.expenseBreakdown : expenses;
   const activityList = agg && agg.activity?.length ? agg.activity : activity;
+  const chartSeries = agg?.series?.length ? agg.series : monthlySeries;
 
   let idx = 0;
 
@@ -181,7 +185,7 @@ export default function Dashboard() {
             </View>
           </View>
 
-          <AreaChart data={period === '3M' ? monthlySeries.slice(-3) : period === '6M' ? monthlySeries.slice(-6) : monthlySeries} />
+          <AreaChart data={period === '3M' ? chartSeries.slice(-3) : period === '6M' ? chartSeries.slice(-6) : chartSeries} />
         </Card>
       </Reveal>
 
