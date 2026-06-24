@@ -132,6 +132,7 @@ export default function Ledgers() {
               <Reveal key={c.id} index={i} delay={120}>
                 <PressableScale
                   onPress={() => router.push(`/(app)/ledgers/${c.id}`)}
+                  nativeID={`cust-${i}`}
                   scaleTo={0.98}
                   accessibilityLabel={`${c.name}, ${label} ${formatCurrency(Math.abs(c.balance))}`}
                   style={{

@@ -218,6 +218,7 @@ export default function LedgerDetail() {
             <Reveal key={e.id} index={i} delay={160}>
               <PressableScale
                 onPress={() => setEditEntry(e)}
+                nativeID={`entry-${i}`}
                 scaleTo={0.98}
                 accessibilityLabel={`Edit ${e.memo}`}
                 style={{

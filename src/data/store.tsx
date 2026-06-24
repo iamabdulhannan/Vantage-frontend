@@ -41,10 +41,6 @@ function mapApiCustomer(c: any): Customer {
 }
 
 /** Fire an API mutation only when a live session exists; never throws. */
-function sync(fn: () => Promise<unknown>) {
-  if (isApiEnabled() && getToken()) fn().catch(() => {});
-}
-
 export interface ActivityItem {
   id: string;
   who: string;
@@ -188,6 +184,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Fire a mutation, then re-pull from the DB so optimistic temp-id rows are replaced by the
+  // real server records (correct ids + server-computed balances). Keeps the UI truthful in
+  // real time and prevents follow-up edits/deletes from hitting a stale temp id (→ 404, lost).
+  const syncThenRefresh = useCallback(
+    (fn: () => Promise<unknown>) => {
+      if (isApiEnabled() && getToken()) {
+        fn()
+          .then(() => refresh())
+          .catch((e) => console.warn('[store] mutation failed to persist', e));
+      }
+    },
+    [refresh],
+  );
+
   // Replace seed data with real data when a live session signs in.
   useEffect(() => {
     if (token && isApiEnabled()) {
@@ -207,25 +217,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       company: string;
       phone?: string;
       email?: string;
-      openingBalance?: number;
-      openingKind?: 'get' | 'give';
     }) => {
       const id = `c${Date.now()}`;
-      const opening = input.openingBalance && input.openingBalance > 0 ? input.openingBalance : 0;
-      // "get" => customer owes us (a debit/you-gave); "give" => we hold their advance (a credit/you-got).
-      const ledger: LedgerEntry[] = opening
-        ? [
-            {
-              id: `e${Date.now()}`,
-              date: todayISO(),
-              memo: 'Opening balance',
-              type: input.openingKind === 'give' ? 'payment' : 'invoice',
-              debit: input.openingKind === 'give' ? 0 : opening,
-              credit: input.openingKind === 'give' ? opening : 0,
-              balance: 0,
-            },
-          ]
-        : [];
+      // DigiKhata-style: a customer starts with a clean ledger (zero balance).
+      // The balance builds purely from real You Gave / You Got entries added later.
       const next: Customer = recalc({
         id,
         name: input.name.trim(),
@@ -236,22 +231,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         balance: 0,
         status: 'settled',
         lastActivity: todayISO(),
-        ledger,
+        ledger: [],
       });
       setCustomers((prev) => [next, ...prev]);
-      sync(() =>
-        api.customers.create({
-          name: input.name,
-          business: input.company,
-          phone: input.phone,
-          email: input.email,
-          openingBalance: opening || undefined,
-          openingKind: input.openingKind,
-        }),
-      );
+      // Persist to the DB, then re-pull so the optimistic temp-id row is replaced by the
+      // real server row (real customer id + entry ids). Without this, adding an entry to a
+      // freshly-created customer would hit /customers/<tempId>/entries → 404 and be lost.
+      if (isApiEnabled() && getToken()) {
+        api.customers
+          .create({
+            name: input.name.trim(),
+            business: input.company?.trim() || undefined,
+            phone: input.phone?.trim() || undefined,
+            email: input.email?.trim() || undefined,
+          })
+          .then(() => refresh())
+          .catch((e) => console.warn('[store] addCustomer failed to persist', e));
+      }
       return id;
     },
-    []
+    [refresh]
   );
 
   const addEntry = useCallback(
@@ -276,7 +275,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       );
       // A "got" entry is a payment received — count it toward live revenue.
       if (!gave) setReceipts((r) => r + input.amount);
-      sync(() => api.customers.addEntry(customerId, { kind: input.kind, amount: input.amount, memo: input.memo }));
+      syncThenRefresh(() => api.customers.addEntry(customerId, { kind: input.kind, amount: input.amount, memo: input.memo }));
       logActivity({
         who: who || 'Customer',
         what: gave ? (input.memo.trim() || 'Credit extended') : 'Payment received',
@@ -284,7 +283,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         type: gave ? 'invoice' : 'payment',
       });
     },
-    [logActivity]
+    [logActivity, syncThenRefresh]
   );
 
   const updateEntry = useCallback(
@@ -308,17 +307,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           return recalc({ ...c, lastActivity: todayISO(), ledger });
         })
       );
-      sync(() => api.customers.updateEntry(customerId, entryId, input));
+      syncThenRefresh(() => api.customers.updateEntry(customerId, entryId, input));
     },
-    []
+    [syncThenRefresh]
   );
 
   const removeEntry = useCallback((customerId: string, entryId: string) => {
     setCustomers((prev) =>
       prev.map((c) => (c.id !== customerId ? c : recalc({ ...c, ledger: c.ledger.filter((e) => e.id !== entryId) }))),
     );
-    sync(() => api.customers.removeEntry(customerId, entryId));
-  }, []);
+    syncThenRefresh(() => api.customers.removeEntry(customerId, entryId));
+  }, [syncThenRefresh]);
 
   const addExpense = useCallback(
     (input: { label: string; value: number; note?: string }) => {
@@ -336,16 +335,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           },
         ];
       });
-      sync(() => api.expenses.create({ label: input.label, value: input.value, note: input.note }));
+      syncThenRefresh(() => api.expenses.create({ label: input.label, value: input.value, note: input.note }));
       logActivity({ who: input.label.trim(), what: 'Expense recorded', amount: input.value, type: 'invoice' });
     },
-    [logActivity]
+    [logActivity, syncThenRefresh]
   );
 
   const removeExpense = useCallback((id: string) => {
     setExpenses((prev) => prev.filter((e) => e.id !== id));
-    sync(() => api.expenses.remove(id));
-  }, []);
+    syncThenRefresh(() => api.expenses.remove(id));
+  }, [syncThenRefresh]);
 
   const runPayroll = useCallback(() => {
     let disbursed = 0;
@@ -356,9 +355,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (disbursed > 0) {
       logActivity({ who: 'Payroll', what: 'Salaries disbursed', amount: disbursed, type: 'payment' });
     }
-    sync(() => api.employees.runPayroll());
+    syncThenRefresh(() => api.employees.runPayroll());
     return disbursed;
-  }, [logActivity]);
+  }, [logActivity, syncThenRefresh]);
 
   const addEmployee = useCallback((input: { name: string; role: string; dept: string; salary: number }) => {
     const employee: Employee = {
@@ -371,13 +370,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       status: 'pending',
     };
     setEmployees((prev) => [...prev, employee]);
-    sync(() => api.employees.create({ name: input.name, role: input.role, dept: input.dept, salary: input.salary }));
-  }, []);
+    syncThenRefresh(() => api.employees.create({ name: input.name, role: input.role, dept: input.dept, salary: input.salary }));
+  }, [syncThenRefresh]);
 
   const removeEmployee = useCallback((id: string) => {
     setEmployees((prev) => prev.filter((e) => e.id !== id));
-    sync(() => api.employees.remove(id));
-  }, []);
+    syncThenRefresh(() => api.employees.remove(id));
+  }, [syncThenRefresh]);
 
   const incrementSalary = useCallback(
     (id: string, amount: number) => {
@@ -393,9 +392,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (amount > 0 && who) {
         logActivity({ who, what: 'Salary increment', amount, type: 'invoice' });
       }
-      sync(() => api.employees.increment(id, amount));
+      syncThenRefresh(() => api.employees.increment(id, amount));
     },
-    [logActivity]
+    [logActivity, syncThenRefresh]
   );
 
   const addPartner = useCallback(
@@ -413,19 +412,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         status: 'active',
       };
       setPartners((prev) => [...prev, partner]);
-      sync(() =>
+      syncThenRefresh(() =>
         api.partners.create({
-          name: input.name,
-          region: input.region,
+          name: input.name.trim(),
+          region: input.region?.trim() || undefined,
           share: input.share,
           revenue: input.revenue,
-          contact: input.contact,
-          phone: input.phone,
-          email: input.email,
+          contact: input.contact?.trim() || undefined,
+          phone: input.phone?.trim() || undefined,
+          email: input.email?.trim() || undefined,
         }),
       );
     },
-    []
+    [syncThenRefresh]
   );
 
   const value = useMemo<StoreValue>(

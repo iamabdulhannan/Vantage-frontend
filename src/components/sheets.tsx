@@ -18,11 +18,12 @@ function parseAmount(s: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function ColorButton({ label, color, onPress, disabled }: { label: string; color: string; onPress: () => void; disabled?: boolean }) {
+function ColorButton({ label, color, onPress, disabled, nativeID }: { label: string; color: string; onPress: () => void; disabled?: boolean; nativeID?: string }) {
   const t = useTheme();
   return (
     <PressableScale
       onPress={disabled ? () => {} : onPress}
+      nativeID={nativeID}
       style={{
         height: 48,
         borderRadius: t.radius.lg,
@@ -43,46 +44,12 @@ function ColorButton({ label, color, onPress, disabled }: { label: string; color
 
 /* -------------------------------------------------------------------------- */
 
-function DirectionToggle({ value, onChange }: { value: 'get' | 'give'; onChange: (v: 'get' | 'give') => void }) {
-  const t = useTheme();
-  const pill = (key: 'get' | 'give', label: string, color: string) => {
-    const active = value === key;
-    return (
-      <PressableScale
-        onPress={() => onChange(key)}
-        style={{
-          flex: 1,
-          height: 44,
-          borderRadius: t.radius.md,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: active ? color : t.colors.surfaceAlt,
-          borderWidth: 1,
-          borderColor: active ? color : t.colors.border,
-        }}
-      >
-        <Text variant="bodySm" weight="semibold" style={{ color: active ? '#FFFFFF' : t.colors.textMuted }}>
-          {label}
-        </Text>
-      </PressableScale>
-    );
-  };
-  return (
-    <View style={{ flexDirection: 'row', gap: 10 }}>
-      {pill('get', "You'll get", t.colors.success)}
-      {pill('give', "You'll give", t.colors.danger)}
-    </View>
-  );
-}
-
 export function AddCustomerSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { addCustomer } = useStore();
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [opening, setOpening] = useState('');
-  const [openingKind, setOpeningKind] = useState<'get' | 'give'>('get');
   const [error, setError] = useState<string | undefined>();
 
   useEffect(() => {
@@ -91,8 +58,6 @@ export function AddCustomerSheet({ visible, onClose }: { visible: boolean; onClo
       setCompany('');
       setPhone('');
       setEmail('');
-      setOpening('');
-      setOpeningKind('get');
       setError(undefined);
     }
   }, [visible]);
@@ -106,19 +71,12 @@ export function AddCustomerSheet({ visible, onClose }: { visible: boolean; onClo
       setError('Enter a valid email address');
       return;
     }
-    addCustomer({
-      name,
-      company,
-      phone,
-      email,
-      openingBalance: parseAmount(opening),
-      openingKind,
-    });
+    addCustomer({ name, company, phone, email });
     onClose();
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="New customer" subtitle="Save full contact + opening balance">
+    <Sheet visible={visible} onClose={onClose} title="New customer" subtitle="The balance builds from the entries you add">
       <View style={{ gap: 16 }}>
         <Field label="Customer name *" icon={User} value={name} onChangeText={setName} placeholder="e.g. Sara Ahmed" autoFocus />
         <Field
@@ -143,17 +101,6 @@ export function AddCustomerSheet({ visible, onClose }: { visible: boolean; onClo
           autoComplete="email"
           textContentType="emailAddress"
         />
-        <View style={{ gap: 10 }}>
-          <Field
-            label={`Opening balance (${currencySymbol()}) — optional`}
-            icon={Hash}
-            value={opening}
-            onChangeText={setOpening}
-            placeholder="0"
-            keyboardType="numeric"
-          />
-          {parseAmount(opening) > 0 && <DirectionToggle value={openingKind} onChange={setOpeningKind} />}
-        </View>
         {error && (
           <Text variant="caption" tone="danger" weight="medium">
             {error}
@@ -223,8 +170,8 @@ export function AddEntrySheet({
           error={error}
           autoFocus
         />
-        <Field label="Note (optional)" icon={FileText} value={memo} onChangeText={setMemo} placeholder={isGave ? 'e.g. Goods supplied' : 'e.g. Cash payment'} />
-        <ColorButton label={isGave ? 'Save — You Gave' : 'Save — You Got'} color={color} onPress={submit} />
+        <Field label="Details (items, bill no, reason)" icon={FileText} value={memo} onChangeText={setMemo} placeholder={isGave ? 'e.g. 10 cartons supplied — Bill #221' : 'e.g. Cash payment received'} />
+        <ColorButton label={isGave ? 'Save — You Gave' : 'Save — You Got'} color={color} onPress={submit} nativeID="save-add-entry" />
       </View>
     </Sheet>
   );
@@ -314,7 +261,7 @@ export function EditEntrySheet({
           {pill('got', 'You got', t.colors.success)}
         </View>
         <Field label={`Amount (${currencySymbol()})`} icon={Hash} value={amount} onChangeText={setAmount} placeholder="0" keyboardType="numeric" error={error} />
-        <Field label="Note (optional)" icon={FileText} value={memo} onChangeText={setMemo} placeholder="e.g. Goods supplied" />
+        <Field label="Details (items, bill no, reason)" icon={FileText} value={memo} onChangeText={setMemo} placeholder="e.g. 10 cartons supplied — Bill #221" />
         <Button label="Save changes" onPress={save} nativeID="save-entry" />
         <Button
           label={confirmDelete ? 'Tap again to confirm delete' : 'Delete entry'}
