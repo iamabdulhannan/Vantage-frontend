@@ -117,6 +117,8 @@ interface StoreValue {
   }) => void;
   /** Disburse every pending salary; returns the amount paid out. */
   runPayroll: () => number;
+  /** Re-pull all data from the API (real-time refresh). */
+  refresh: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -131,65 +133,65 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const { token } = useAuth();
 
-  // When a live session signs in, replace the seed data with the company's real data.
+  /** Pull the company's live data from the API and replace local state. */
+  const refresh = useCallback(async () => {
+    if (!isApiEnabled() || !getToken()) return;
+    try {
+      const [cs, ex, pr, em]: any[] = await Promise.all([
+        api.customers.list(),
+        api.expenses.list(),
+        api.partners.list(),
+        api.employees.list(),
+      ]);
+      setCustomers((cs.customers ?? []).map(mapApiCustomer));
+      setExpenses(
+        (ex.expenses ?? []).map((e: any) => ({
+          id: e.id,
+          label: e.label,
+          value: Number(e.value),
+          color: e.color,
+          note: e.note ?? undefined,
+          date: e.date ? String(e.date).slice(0, 10) : undefined,
+        })),
+      );
+      setPartners(
+        (pr.partners ?? []).map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          region: p.region,
+          contact: p.contact ?? undefined,
+          phone: p.phone ?? undefined,
+          email: p.email ?? undefined,
+          share: p.share,
+          revenue: Number(p.revenue),
+          delta: p.delta ?? 0,
+          status: p.status,
+        })),
+      );
+      setEmployees(
+        (em.employees ?? []).map((e: any) => ({
+          id: e.id,
+          name: e.name,
+          role: e.role,
+          dept: e.dept,
+          initials: e.initials,
+          salary: Number(e.salary),
+          status: e.status,
+        })),
+      );
+    } catch {
+      // Keep current data if the API is briefly unreachable.
+    }
+  }, []);
+
+  // Replace seed data with real data when a live session signs in.
   useEffect(() => {
-    if (!token || !isApiEnabled()) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const [cs, ex, pr, em]: any[] = await Promise.all([
-          api.customers.list(),
-          api.expenses.list(),
-          api.partners.list(),
-          api.employees.list(),
-        ]);
-        if (cancelled) return;
-        setCustomers((cs.customers ?? []).map(mapApiCustomer));
-        setExpenses(
-          (ex.expenses ?? []).map((e: any) => ({
-            id: e.id,
-            label: e.label,
-            value: Number(e.value),
-            color: e.color,
-            note: e.note ?? undefined,
-            date: e.date ? String(e.date).slice(0, 10) : undefined,
-          })),
-        );
-        setPartners(
-          (pr.partners ?? []).map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            region: p.region,
-            contact: p.contact ?? undefined,
-            phone: p.phone ?? undefined,
-            email: p.email ?? undefined,
-            share: p.share,
-            revenue: Number(p.revenue),
-            delta: p.delta ?? 0,
-            status: p.status,
-          })),
-        );
-        setEmployees(
-          (em.employees ?? []).map((e: any) => ({
-            id: e.id,
-            name: e.name,
-            role: e.role,
-            dept: e.dept,
-            initials: e.initials,
-            salary: Number(e.salary),
-            status: e.status,
-          })),
-        );
-        setActivity([]);
-        setReceipts(0);
-      } catch {
-        // Keep the seed/local data if the API is unreachable.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
+    if (token && isApiEnabled()) {
+      setActivity([]);
+      setReceipts(0);
+      refresh();
+    }
+  }, [token, refresh]);
 
   const logActivity = useCallback((item: Omit<ActivityItem, 'id' | 'when'>) => {
     setActivity((prev) => [{ id: `act${Date.now()}`, when: nowISO(), ...item }, ...prev]);
@@ -406,6 +408,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       incrementSalary,
       addPartner,
       runPayroll,
+      refresh,
     }),
     [
       customers,
@@ -423,6 +426,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       incrementSalary,
       addPartner,
       runPayroll,
+      refresh,
     ]
   );
 

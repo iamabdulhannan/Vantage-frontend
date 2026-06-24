@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { FileText, ArrowDownLeft, Flame, Hourglass, Users2, ArrowRight, Plus } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Screen } from '@/components/Screen';
@@ -44,7 +44,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [period, setPeriod] = useState('12M');
   const [expenseOpen, setExpenseOpen] = useState(false);
-  const { expenses, employees, activity, receipts } = useStore();
+  const { expenses, employees, activity, receipts, refresh } = useStore();
   const { user, token } = useAuth();
   const { name: companyName, fiscalYear } = useCompany();
   const greetName = (user?.name ?? currentUser.name).split(' ')[0];
@@ -54,20 +54,29 @@ export default function Dashboard() {
   // Pull the fully-aggregated dashboard from the API when signed in live;
   // refetch after mutations. Falls back to local computation when offline.
   const [agg, setAgg] = useState<any | null>(null);
-  useEffect(() => {
+  const loadAgg = useCallback(() => {
     if (!token || !isApiEnabled()) {
       setAgg(null);
       return;
     }
-    let cancelled = false;
     api.dashboard
       .get()
-      .then((d) => !cancelled && setAgg(d))
+      .then(setAgg)
       .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [token, receipts, expenses.length, employees.length]);
+  }, [token]);
+
+  // Refetch the aggregate after local mutations…
+  useEffect(() => {
+    loadAgg();
+  }, [loadAgg, receipts, expenses.length, employees.length]);
+
+  // …and pull fresh data from the DB every time the dashboard regains focus.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+      loadAgg();
+    }, [refresh, loadAgg]),
+  );
 
   const localExpense = expenses.reduce((s, d) => s + d.value, 0);
   const revenue = agg ? agg.kpis.revenue : kpis[0].value + receipts;

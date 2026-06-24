@@ -14,12 +14,14 @@ import { Reveal, PressableScale } from '@/components/motion';
 import { Fab } from '@/components/Fab';
 import { AddCustomerSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { formatCurrency, relativeDate } from '@/data/format';
 
 export default function Ledgers() {
   const t = useTheme();
   const router = useRouter();
   const { customers } = useStore();
+  useRefreshOnFocus();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
   const [addOpen, setAddOpen] = useState(false);

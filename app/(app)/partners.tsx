@@ -12,6 +12,7 @@ import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal } from '@/components/motion';
 import { AddPartnerSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { Partner } from '@/data/mock';
 import { formatCurrency, formatPercent } from '@/data/format';
 
@@ -26,6 +27,7 @@ const STATUS: Record<Partner['status'], { intent: 'success' | 'warning' | 'neutr
 export default function Partners() {
   const t = useTheme();
   const { partners } = useStore();
+  useRefreshOnFocus();
   const [addOpen, setAddOpen] = useState(false);
   const totalRevenue = partners.reduce((s, p) => s + p.revenue, 0);
   const totalShare = partners.reduce((s, p) => s + p.share, 0);

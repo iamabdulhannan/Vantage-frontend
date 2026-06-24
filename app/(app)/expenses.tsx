@@ -12,12 +12,14 @@ import { Reveal, PressableScale } from '@/components/motion';
 import { Fab } from '@/components/Fab';
 import { AddExpenseSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { formatCurrency, relativeDate } from '@/data/format';
 
 export default function Expenses() {
   const t = useTheme();
   const router = useRouter();
   const { expenses, removeExpense } = useStore();
+  useRefreshOnFocus();
   const [addOpen, setAddOpen] = useState(false);
 
   const total = expenses.reduce((s, e) => s + e.value, 0);

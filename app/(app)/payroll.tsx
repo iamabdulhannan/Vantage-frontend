@@ -14,6 +14,7 @@ import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, ProgressBar, PressableScale } from '@/components/motion';
 import { AddEmployeeSheet, EmployeeSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { computePayroll, TAX_RATE, Employee } from '@/data/mock';
 import { formatCurrency, formatDate } from '@/data/format';
 import { ChevronRight } from 'lucide-react-native';
@@ -40,6 +41,7 @@ function BreakdownCell({ label, value, tone }: { label: string; value: number; t
 export default function Payroll() {
   const t = useTheme();
   const { employees, runPayroll } = useStore();
+  useRefreshOnFocus();
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState<Employee | null>(null);
   const pay = computePayroll(employees);
