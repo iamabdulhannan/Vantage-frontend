@@ -17,9 +17,12 @@ import { formatUSD } from '@/data/format';
 const STEP_TITLES = [
   { title: 'Company profile', sub: 'Tell us about your business' },
   { title: 'Base currency', sub: 'Every amount in the app uses this' },
+  { title: 'Opening financials', sub: 'Your starting capital & revenue' },
   { title: 'Your account', sub: 'You’ll be the owner / super admin' },
   { title: 'Team & seats', sub: 'How many people will use Vantage?' },
 ];
+
+const LAST_STEP = STEP_TITLES.length - 1;
 
 const TEAM_SIZES = ['Just me', '2–10', '11–50', '50+'];
 
@@ -104,13 +107,13 @@ export default function Setup() {
 
   const next = () => {
     if (step === 0 && companyName.trim().length < 2) return setErr('Enter your company name');
-    if (step === 2) {
+    if (step === 3) {
       if (ownerName.trim().length < 2) return setErr('Enter your name');
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setErr('Enter a valid email address');
       if (password.length < 4) return setErr('Password must be at least 4 characters');
     }
     setErr(undefined);
-    if (step < 3) setStep((s) => s + 1);
+    if (step < LAST_STEP) setStep((s) => s + 1);
     else void finish();
   };
 
@@ -130,7 +133,7 @@ export default function Setup() {
           <LogoMark size={36} />
           <View style={{ flex: 1 }} />
           <Text variant="caption" tone="subtle" weight="semibold" mono>
-            {step + 1}/4
+            {step + 1}/{STEP_TITLES.length}
           </Text>
         </View>
         {/* Progress segments */}
@@ -250,36 +253,68 @@ export default function Setup() {
                     );
                   })}
                 </View>
-
-                {/* Opening financials */}
-                <View style={{ gap: 14, marginTop: 4 }}>
-                  <Text variant="bodySm" weight="medium" tone="muted">
-                    Opening financials (optional)
-                  </Text>
-                  <Field
-                    label={`Working capital (${selectedCurrency.symbol})`}
-                    icon={Wallet}
-                    value={capital}
-                    onChangeText={setCapital}
-                    placeholder="0"
-                    keyboardType="numeric"
-                  />
-                  <Field
-                    label={`Total revenue (${selectedCurrency.symbol})`}
-                    icon={TrendingUp}
-                    value={revenue}
-                    onChangeText={setRevenue}
-                    placeholder="0"
-                    keyboardType="numeric"
-                  />
-                </View>
               </View>
             </Reveal>
           )}
 
-          {/* STEP 2 — ACCOUNT */}
+          {/* STEP 2 — OPENING FINANCIALS */}
           {step === 2 && (
-            <Reveal index={1} key="s2">
+            <Reveal index={1} key="s-fin">
+              <View style={{ gap: 16 }}>
+                {/* Live preview of the dashboard numbers these fields drive */}
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <View style={{ flex: 1, backgroundColor: t.colors.surfaceAlt, borderRadius: t.radius.xl, padding: 16, gap: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Wallet size={15} color={t.colors.accent} strokeWidth={2.4} />
+                      <Text variant="micro" tone="subtle" weight="semibold" style={{ letterSpacing: 0.3 }}>
+                        WORKING CAPITAL
+                      </Text>
+                    </View>
+                    <Text variant="h3" weight="bold" mono tone="accent">
+                      {selectedCurrency.symbol}{selectedCurrency.symbol.length <= 1 ? '' : ' '}{toNum(capital).toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={{ flex: 1, backgroundColor: t.colors.surfaceAlt, borderRadius: t.radius.xl, padding: 16, gap: 6 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <TrendingUp size={15} color={t.colors.success} strokeWidth={2.4} />
+                      <Text variant="micro" tone="subtle" weight="semibold" style={{ letterSpacing: 0.3 }}>
+                        TOTAL REVENUE
+                      </Text>
+                    </View>
+                    <Text variant="h3" weight="bold" mono style={{ color: t.colors.success }}>
+                      {selectedCurrency.symbol}{selectedCurrency.symbol.length <= 1 ? '' : ' '}{toNum(revenue).toLocaleString()}
+                    </Text>
+                  </View>
+                </View>
+
+                <Field
+                  label={`Working capital (${selectedCurrency.symbol})`}
+                  icon={Wallet}
+                  value={capital}
+                  onChangeText={setCapital}
+                  placeholder="e.g. 500000"
+                  keyboardType="numeric"
+                  autoFocus
+                />
+                <Field
+                  label={`Total revenue so far (${selectedCurrency.symbol})`}
+                  icon={TrendingUp}
+                  value={revenue}
+                  onChangeText={setRevenue}
+                  placeholder="e.g. 1500000"
+                  keyboardType="numeric"
+                />
+                <Text variant="caption" tone="subtle">
+                  These power your CEO dashboard — Working Capital, Total Revenue, Net Profit and cash
+                  runway. You can leave them at 0 and update them anytime from Settings → Company.
+                </Text>
+              </View>
+            </Reveal>
+          )}
+
+          {/* STEP 3 — ACCOUNT */}
+          {step === 3 && (
+            <Reveal index={1} key="s-acct">
               <View style={{ gap: 16 }}>
                 <Field label="Your full name *" icon={User} value={ownerName} onChangeText={setOwnerName} placeholder="e.g. Alex Mercer" autoFocus />
                 <Field label="Your role" icon={Briefcase} value={role} onChangeText={setRole} placeholder="e.g. Founder & CEO" />
@@ -299,9 +334,9 @@ export default function Setup() {
             </Reveal>
           )}
 
-          {/* STEP 3 — TEAM */}
-          {step === 3 && (
-            <Reveal index={1} key="s3">
+          {/* STEP 4 — TEAM */}
+          {step === 4 && (
+            <Reveal index={1} key="s-team">
               <View style={{ gap: 20 }}>
                 <View style={{ gap: 8 }}>
                   <Text variant="bodySm" weight="medium" tone="muted">
@@ -490,8 +525,8 @@ export default function Setup() {
         {/* Sticky CTA */}
         <View style={{ paddingHorizontal: 24, paddingTop: 10, paddingBottom: insets.bottom + 14, borderTopWidth: 1, borderTopColor: t.colors.border, backgroundColor: t.colors.bg }}>
           <Button
-            label={step < 3 ? 'Continue' : `Create company · ${formatUSD(bill.dueNow)}`}
-            iconRight={step < 3 ? ArrowRight : Check}
+            label={step < LAST_STEP ? 'Continue' : `Create company · ${formatUSD(bill.dueNow)}`}
+            iconRight={step < LAST_STEP ? ArrowRight : Check}
             onPress={next}
             loading={submitting}
             size="lg"

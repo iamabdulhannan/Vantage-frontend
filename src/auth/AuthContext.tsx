@@ -62,6 +62,9 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   updateCompany: (company: CompanyProfile) => void;
+  /** Persist an edit to the company profile (name, currency, capital, revenue…) to the API. */
+  saveCompany: (patch: Partial<Pick<CompanyProfile,
+    'name' | 'industry' | 'country' | 'currencyCode' | 'currencySymbol' | 'capital' | 'revenue' | 'teamSize'>>) => Promise<void>;
   signOut: () => void;
 }
 
@@ -187,6 +190,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateCompany = useCallback((c: CompanyProfile) => setCompany(c), []);
 
+  const saveCompany = useCallback<AuthContextValue['saveCompany']>(
+    async (patch) => {
+      if (!isApiEnabled()) throw new Error('Backend is not configured.');
+      const updated = await api.company.update(patch as Record<string, unknown>);
+      setCompany((prev) => {
+        const merged: CompanyProfile = {
+          ...(prev as CompanyProfile),
+          ...mapCompany(updated, { name: prev?.ownerName, role: prev?.ownerRole, email: prev?.ownerEmail }),
+        };
+        return merged;
+      });
+      if (patch.currencySymbol) setCurrencySymbol(patch.currencySymbol);
+    },
+    [],
+  );
+
   const signOut = useCallback(() => {
     setToken(null);
     setTokenState(null);
@@ -197,7 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, company, signedIn: !!user, token: tokenState, hydrating, online, signIn, register, updateCompany, signOut }}
+      value={{ user, company, signedIn: !!user, token: tokenState, hydrating, online, signIn, register, updateCompany, saveCompany, signOut }}
     >
       {children}
     </AuthContext.Provider>

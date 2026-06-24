@@ -86,5 +86,9 @@ export const api = {
     get: () => request('/billing/me'),
     update: (body: Record<string, unknown>) => request('/billing/me', { method: 'PATCH', body }),
   },
+  company: {
+    get: () => request('/companies/me'),
+    update: (body: Record<string, unknown>) => request('/companies/me', { method: 'PATCH', body }),
+  },
   dashboard: { get: () => request('/dashboard/me') },
 };

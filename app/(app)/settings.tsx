@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   LogOut,
   Moon,
+  Building2,
   type LucideIcon,
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
@@ -116,32 +117,34 @@ export default function Settings() {
       </Card>
 
       {/* Company */}
-      <Card elevation={1} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View style={{ gap: 4, flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text variant="caption" tone="subtle" weight="medium" style={{ letterSpacing: 0.4 }}>
-              COMPANY
+      <Pressable onPress={() => router.push('/(app)/company')} accessibilityRole="button" nativeID="open-company">
+        <Card elevation={1} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ gap: 4, flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text variant="caption" tone="subtle" weight="medium" style={{ letterSpacing: 0.4 }}>
+                COMPANY
+              </Text>
+              <ConnectionBadge />
+            </View>
+            <Text variant="body" weight="bold" numberOfLines={1}>
+              {companyName}
             </Text>
-            <ConnectionBadge />
+            {company && (
+              <Text variant="caption" tone="subtle" numberOfLines={1}>
+                {company.industry} · {company.seats} seats · {company.plan} plan
+              </Text>
+            )}
           </View>
-          <Text variant="body" weight="bold" numberOfLines={1}>
-            {companyName}
-          </Text>
-          {company && (
-            <Text variant="caption" tone="subtle" numberOfLines={1}>
-              {company.industry} · {company.seats} seats · {company.plan} plan
+          <View style={{ alignItems: 'center', backgroundColor: t.colors.accentSoft, borderRadius: t.radius.md, paddingHorizontal: 12, paddingVertical: 8 }}>
+            <Text variant="caption" tone="subtle" weight="medium">
+              Currency
             </Text>
-          )}
-        </View>
-        <View style={{ alignItems: 'center', backgroundColor: t.colors.accentSoft, borderRadius: t.radius.md, paddingHorizontal: 12, paddingVertical: 8 }}>
-          <Text variant="caption" tone="subtle" weight="medium">
-            Currency
-          </Text>
-          <Text variant="body" weight="bold" mono tone="accent">
-            {currencySymbol()}
-          </Text>
-        </View>
-      </Card>
+            <Text variant="body" weight="bold" mono tone="accent">
+              {currencySymbol()}
+            </Text>
+          </View>
+        </Card>
+      </Pressable>
 
       <SectionLabel>Preferences</SectionLabel>
       <Card elevation={1} padded={false} style={{ overflow: 'hidden' }}>
@@ -165,8 +168,9 @@ export default function Settings() {
 
       <SectionLabel>Company</SectionLabel>
       <Card elevation={1} padded={false} style={{ overflow: 'hidden' }}>
-        <Row first icon={Users2} label="Team members" />
+        <Row first icon={Building2} label="Company profile" onPress={() => router.push('/(app)/company')} />
         <Row icon={CreditCard} label="Billing & plan" onPress={() => router.push('/(app)/billing')} />
+        <Row icon={Users2} label="Team members" />
         <Row icon={Blocks} label="Integrations" />
       </Card>
 
