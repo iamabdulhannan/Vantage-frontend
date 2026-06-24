@@ -114,6 +114,107 @@ export function AddCustomerSheet({ visible, onClose }: { visible: boolean; onClo
 
 /* -------------------------------------------------------------------------- */
 
+export function EditCustomerSheet({
+  visible,
+  onClose,
+  customer,
+  onDeleted,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  customer: { id: string; name: string; company: string; phone?: string; email?: string } | null;
+  onDeleted?: () => void;
+}) {
+  const { updateCustomer, removeCustomer } = useStore();
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState<string | undefined>();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (visible && customer) {
+      setName(customer.name);
+      setCompany(customer.company || '');
+      setPhone(customer.phone || '');
+      setEmail(customer.email || '');
+      setError(undefined);
+      setConfirmDelete(false);
+    }
+  }, [visible, customer?.id]);
+
+  if (!customer) return null;
+
+  const save = () => {
+    if (name.trim().length < 2) {
+      setError('Enter the customer name');
+      return;
+    }
+    if (email.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+      setError('Enter a valid email address');
+      return;
+    }
+    updateCustomer(customer.id, { name, company, phone, email });
+    onClose();
+  };
+
+  const del = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    removeCustomer(customer.id);
+    onClose();
+    onDeleted?.();
+  };
+
+  return (
+    <Sheet visible={visible} onClose={onClose} title="Edit customer" subtitle="Update details or delete this account">
+      <View style={{ gap: 16 }}>
+        <Field label="Customer name *" icon={User} value={name} onChangeText={setName} placeholder="e.g. Sara Ahmed" autoFocus />
+        <Field
+          label="Phone number"
+          icon={Phone}
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="e.g. 0300 1234567"
+          keyboardType="phone-pad"
+          textContentType="telephoneNumber"
+          autoComplete="tel"
+        />
+        <Field label="Business / company" icon={Building2} value={company} onChangeText={setCompany} placeholder="e.g. Ahmed Traders" />
+        <Field
+          label="Email (optional)"
+          icon={Mail}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="e.g. sara@traders.pk"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          textContentType="emailAddress"
+        />
+        {error && (
+          <Text variant="caption" tone="danger" weight="medium">
+            {error}
+          </Text>
+        )}
+        <Button label="Save changes" onPress={save} nativeID="save-customer-edit" />
+        <Button
+          label={confirmDelete ? 'Tap again to delete customer + ledger' : 'Delete customer'}
+          variant="danger"
+          icon={Trash2}
+          onPress={del}
+          nativeID="delete-customer"
+        />
+      </View>
+    </Sheet>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+
 export function AddEntrySheet({
   visible,
   onClose,

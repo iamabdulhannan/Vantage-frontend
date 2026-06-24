@@ -93,6 +93,10 @@ interface StoreValue {
     openingBalance?: number;
     openingKind?: 'get' | 'give';
   }) => string;
+  /** Edit a customer's profile (name / business / phone / email). */
+  updateCustomer: (id: string, patch: { name?: string; company?: string; phone?: string; email?: string }) => void;
+  /** Delete a customer and their whole ledger. */
+  removeCustomer: (id: string) => void;
   addEntry: (customerId: string, input: { kind: 'gave' | 'got'; amount: number; memo: string }) => void;
   /** Edit an existing ledger entry. */
   updateEntry: (customerId: string, entryId: string, input: { kind?: 'gave' | 'got'; amount?: number; memo?: string }) => void;
@@ -251,6 +255,42 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return id;
     },
     [refresh]
+  );
+
+  const updateCustomer = useCallback(
+    (id: string, patch: { name?: string; company?: string; phone?: string; email?: string }) => {
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c.id !== id
+            ? c
+            : {
+                ...c,
+                name: patch.name?.trim() || c.name,
+                company: patch.company !== undefined ? patch.company.trim() : c.company,
+                phone: patch.phone !== undefined ? patch.phone.trim() || undefined : c.phone,
+                email: patch.email !== undefined ? patch.email.trim() || undefined : c.email,
+                initials: patch.name ? initialsFrom(patch.name) : c.initials,
+              },
+        ),
+      );
+      syncThenRefresh(() =>
+        api.customers.update(id, {
+          name: patch.name?.trim(),
+          business: patch.company?.trim(),
+          phone: patch.phone?.trim() || undefined,
+          email: patch.email?.trim() || undefined,
+        }),
+      );
+    },
+    [syncThenRefresh],
+  );
+
+  const removeCustomer = useCallback(
+    (id: string) => {
+      setCustomers((prev) => prev.filter((c) => c.id !== id));
+      syncThenRefresh(() => api.customers.remove(id));
+    },
+    [syncThenRefresh],
   );
 
   const addEntry = useCallback(
@@ -436,6 +476,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       activity,
       receipts,
       addCustomer,
+      updateCustomer,
+      removeCustomer,
       addEntry,
       updateEntry,
       removeEntry,
@@ -456,6 +498,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       activity,
       receipts,
       addCustomer,
+      updateCustomer,
+      removeCustomer,
       addEntry,
       updateEntry,
       removeEntry,

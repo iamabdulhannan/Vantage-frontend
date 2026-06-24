@@ -58,6 +58,8 @@ export const api = {
     list: () => request('/customers'),
     create: (body: Record<string, unknown>) => request('/customers', { method: 'POST', body }),
     get: (id: string) => request(`/customers/${id}`),
+    update: (id: string, body: Record<string, unknown>) => request(`/customers/${id}`, { method: 'PATCH', body }),
+    remove: (id: string) => request(`/customers/${id}`, { method: 'DELETE' }),
     addEntry: (id: string, body: { kind: 'gave' | 'got'; amount: number; memo?: string }) =>
       request(`/customers/${id}/entries`, { method: 'POST', body }),
     updateEntry: (id: string, entryId: string, body: { kind?: 'gave' | 'got'; amount?: number; memo?: string }) =>

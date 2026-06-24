@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Share2 } from 'lucide-react-native';
+import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Share2, Pencil } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Screen } from '@/components/Screen';
 import { Text } from '@/components/Text';
@@ -10,7 +10,7 @@ import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, PressableScale } from '@/components/motion';
-import { AddEntrySheet, EditEntrySheet } from '@/components/sheets';
+import { AddEntrySheet, EditEntrySheet, EditCustomerSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
 import { useCompany } from '@/data/company';
 import { shareStatement } from '@/utils/statement';
@@ -57,6 +57,7 @@ export default function LedgerDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [entryKind, setEntryKind] = useState<'gave' | 'got' | null>(null);
   const [editEntry, setEditEntry] = useState<LedgerEntry | null>(null);
+  const [editCustomerOpen, setEditCustomerOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
   const customer = customers.find((c) => c.id === id);
 
@@ -125,6 +126,24 @@ export default function LedgerDetail() {
               {[customer.company, customer.phone].filter(Boolean).join(' · ') || 'Customer'}
             </Text>
           </View>
+          <Pressable
+            onPress={() => setEditCustomerOpen(true)}
+            hitSlop={10}
+            accessibilityLabel="Edit customer"
+            nativeID="edit-customer"
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 14,
+              backgroundColor: t.colors.surface,
+              borderWidth: 1,
+              borderColor: t.colors.border,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Pencil size={17} color={t.colors.text} strokeWidth={2.2} />
+          </Pressable>
           <Pressable
             onPress={onShare}
             disabled={sharing}
@@ -266,6 +285,12 @@ export default function LedgerDetail() {
         entry={editEntry}
         customerId={customer.id}
         onClose={() => setEditEntry(null)}
+      />
+      <EditCustomerSheet
+        visible={editCustomerOpen}
+        customer={{ id: customer.id, name: customer.name, company: customer.company, phone: customer.phone, email: customer.email }}
+        onClose={() => setEditCustomerOpen(false)}
+        onDeleted={() => router.back()}
       />
     </Screen>
   );

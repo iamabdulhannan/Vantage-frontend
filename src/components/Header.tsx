@@ -10,11 +10,15 @@ export function Header({
   subtitle,
   initials,
   showBell = true,
+  onBell,
+  unread = false,
 }: {
   title: string;
   subtitle?: string;
   initials?: string;
   showBell?: boolean;
+  onBell?: () => void;
+  unread?: boolean;
 }) {
   const t = useTheme();
   return (
@@ -55,6 +59,7 @@ export function Header({
       {showBell && (
         <Pressable
           hitSlop={8}
+          onPress={onBell}
           accessibilityLabel="Notifications"
           style={{
             width: 42,
@@ -68,19 +73,21 @@ export function Header({
           }}
         >
           <Bell size={20} color={t.colors.text} strokeWidth={2.2} />
-          <View
-            style={{
-              position: 'absolute',
-              top: 9,
-              right: 10,
-              width: 8,
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: t.colors.danger,
-              borderWidth: 1.5,
-              borderColor: t.colors.surface,
-            }}
-          />
+          {unread && (
+            <View
+              style={{
+                position: 'absolute',
+                top: 9,
+                right: 10,
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: t.colors.danger,
+                borderWidth: 1.5,
+                borderColor: t.colors.surface,
+              }}
+            />
+          )}
         </Pressable>
       )}
 

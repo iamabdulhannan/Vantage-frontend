@@ -111,7 +111,13 @@ export default function Dashboard() {
   return (
     <Screen>
       <Reveal index={idx++}>
-        <Header title="Overview" subtitle={`Good morning, ${greetName}`} initials={initials} />
+        <Header
+          title="Overview"
+          subtitle={`Good morning, ${greetName}`}
+          initials={initials}
+          onBell={() => router.push('/(app)/notifications')}
+          unread={activityList.length > 0}
+        />
       </Reveal>
 
       <Reveal index={idx++}>
