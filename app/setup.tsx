@@ -36,6 +36,7 @@ export default function Setup() {
 
   const [step, setStep] = useState(0);
   const [err, setErr] = useState<string | undefined>();
+  const [submitting, setSubmitting] = useState(false);
 
   // Step 0 — company
   const [companyName, setCompanyName] = useState('');
@@ -73,26 +74,32 @@ export default function Setup() {
     else setStep((s) => s - 1);
   };
 
-  const finish = () => {
-    // Creates the company + owner via the API (or locally if the API is unreachable),
-    // signs the owner in, and the root Gate routes to the dashboard.
-    register({
-      name: companyName.trim(),
-      industry,
-      country: country.trim(),
-      currencyCode: selectedCurrency.code,
-      currencySymbol: selectedCurrency.symbol,
-      capital: toNum(capital),
-      revenue: toNum(revenue),
-      teamSize,
-      seats: bill.seats,
-      plan,
-      billingCycle,
-      ownerName: ownerName.trim(),
-      ownerRole: role.trim() || 'Founder & CEO',
-      ownerEmail: email.trim(),
-      password,
-    });
+  const finish = async () => {
+    // Creates the company + owner via the API and signs the owner in (DB-only — no local fallback).
+    setSubmitting(true);
+    try {
+      await register({
+        name: companyName.trim(),
+        industry,
+        country: country.trim(),
+        currencyCode: selectedCurrency.code,
+        currencySymbol: selectedCurrency.symbol,
+        capital: toNum(capital),
+        revenue: toNum(revenue),
+        teamSize,
+        seats: bill.seats,
+        plan,
+        billingCycle,
+        ownerName: ownerName.trim(),
+        ownerRole: role.trim() || 'Founder & CEO',
+        ownerEmail: email.trim(),
+        password,
+      });
+      // On success the root Gate routes to the dashboard.
+    } catch (e: any) {
+      setErr(e?.message || 'Could not create your company. Please try again.');
+      setSubmitting(false);
+    }
   };
 
   const next = () => {
@@ -104,7 +111,7 @@ export default function Setup() {
     }
     setErr(undefined);
     if (step < 3) setStep((s) => s + 1);
-    else finish();
+    else void finish();
   };
 
   return (
@@ -486,6 +493,7 @@ export default function Setup() {
             label={step < 3 ? 'Continue' : `Create company · ${formatUSD(bill.dueNow)}`}
             iconRight={step < 3 ? ArrowRight : Check}
             onPress={next}
+            loading={submitting}
             size="lg"
             nativeID="setup-continue"
           />

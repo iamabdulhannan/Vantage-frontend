@@ -20,6 +20,7 @@ export default function Login() {
   const [email, setEmail] = useState('alex@northwind.io');
   const [password, setPassword] = useState('vantage');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [formError, setFormError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
@@ -27,10 +28,16 @@ export default function Login() {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) next.email = 'Enter a valid email address';
     if (password.length < 4) next.password = 'Password must be at least 4 characters';
     setErrors(next);
+    setFormError(undefined);
     if (Object.keys(next).length) return;
     setLoading(true);
-    await signIn(email, password);
-    // Gate in root layout handles redirect once signed in.
+    try {
+      await signIn(email, password);
+      // Gate in root layout handles redirect once signed in.
+    } catch (e: any) {
+      setFormError(e?.message || 'Could not sign in. Please try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -99,6 +106,14 @@ export default function Login() {
             </Text>
           </Pressable>
 
+          {formError && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.colors.dangerSoft, borderRadius: t.radius.md, padding: 12 }}>
+              <Text variant="bodySm" weight="medium" tone="danger" style={{ flex: 1 }}>
+                {formError}
+              </Text>
+            </View>
+          )}
+
           <Button label="Sign in" onPress={submit} loading={loading} size="lg" nativeID="login-submit" />
 
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 4 }}>
@@ -108,15 +123,12 @@ export default function Login() {
             </Text>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 4 }}>
-            <View style={{ flex: 1, height: 1, backgroundColor: t.colors.border }} />
-            <Text variant="caption" tone="subtle">
-              Demo access
+          <Text variant="caption" tone="subtle" center style={{ marginTop: 4 }}>
+            Sign in with your Vantage account. New here?{' '}
+            <Text variant="caption" weight="semibold" tone="accent" onPress={() => router.replace('/setup')}>
+              Set up your company
             </Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: t.colors.border }} />
-          </View>
-          <Text variant="caption" tone="subtle" center>
-            Any email + password works in this prototype. Tap Sign in to explore as Super Admin.
+            .
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>

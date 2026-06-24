@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { currentUser } from '@/data/mock';
 import { PlanKey, BillingCycle } from '@/data/currencies';
 import { setCurrencySymbol } from '@/data/format';
 import { api, setToken, isApiEnabled } from '@/api/client';
@@ -115,13 +114,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     (async () => {
       const s = await loadSession();
-      if (!cancelled && s?.user) {
+      // Only restore a real (DB-backed) session — a token is required.
+      if (!cancelled && s?.user && s.token) {
         setToken(s.token);
         setTokenState(s.token);
         setUser(s.user);
         setCompany(s.company);
         if (s.company) setCurrencySymbol(s.company.currencySymbol);
-        setOnline(!!s.token);
+        setOnline(true);
+      } else if (s) {
+        await clearSession();
       }
       if (!cancelled) setHydrating(false);
     })();
@@ -148,76 +150,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setOnline(true);
   }, []);
 
+  // Database-only auth: credentials are verified by the API. No local fallback.
   const signIn = useCallback(
     async (email: string, password: string) => {
-      try {
-        if (!isApiEnabled()) throw new Error('offline');
-        const r = await api.auth.login(email, password);
-        applySession(r);
-      } catch {
-        // Fallback: local demo session (keeps the app usable while the API is unreachable).
-        await new Promise((res) => setTimeout(res, 600));
-        setToken(null);
-        setTokenState(null);
-        setOnline(false);
-        setUser({ ...currentUser, email: email || currentUser.email });
-      }
+      if (!isApiEnabled()) throw new Error('Backend is not configured. Please try again later.');
+      const r = await api.auth.login(email, password);
+      applySession(r);
     },
     [applySession],
   );
 
   const register = useCallback(
     async (input: RegisterInput) => {
-      try {
-        if (!isApiEnabled()) throw new Error('offline');
-        const r = await api.auth.register({
-          companyName: input.name,
-          industry: input.industry,
-          country: input.country,
-          currencyCode: input.currencyCode,
-          currencySymbol: input.currencySymbol,
-          capital: input.capital,
-          revenue: input.revenue,
-          teamSize: input.teamSize,
-          seats: input.seats,
-          plan: input.plan,
-          billingCycle: input.billingCycle,
-          ownerName: input.ownerName,
-          ownerRole: input.ownerRole,
-          email: input.ownerEmail,
-          password: input.password,
-        });
-        applySession(r);
-      } catch {
-        // Fallback: create the company locally so setup still completes offline.
-        setToken(null);
-        setTokenState(null);
-        setOnline(false);
-        setCurrencySymbol(input.currencySymbol);
-        setUser({
-          name: input.ownerName,
-          role: input.ownerRole,
-          email: input.ownerEmail,
-          initials: initialsFrom(input.ownerName),
-        });
-        setCompany({
-          name: input.name,
-          industry: input.industry,
-          country: input.country,
-          currencyCode: input.currencyCode,
-          currencySymbol: input.currencySymbol,
-          capital: input.capital,
-          revenue: input.revenue,
-          ownerName: input.ownerName,
-          ownerRole: input.ownerRole,
-          ownerEmail: input.ownerEmail,
-          teamSize: input.teamSize,
-          seats: input.seats,
-          plan: input.plan,
-          billingCycle: input.billingCycle,
-          billingSince: todayISO(),
-        });
-      }
+      if (!isApiEnabled()) throw new Error('Backend is not configured. Please try again later.');
+      const r = await api.auth.register({
+        companyName: input.name,
+        industry: input.industry,
+        country: input.country,
+        currencyCode: input.currencyCode,
+        currencySymbol: input.currencySymbol,
+        capital: input.capital,
+        revenue: input.revenue,
+        teamSize: input.teamSize,
+        seats: input.seats,
+        plan: input.plan,
+        billingCycle: input.billingCycle,
+        ownerName: input.ownerName,
+        ownerRole: input.ownerRole,
+        email: input.ownerEmail,
+        password: input.password,
+      });
+      applySession(r);
     },
     [applySession],
   );
