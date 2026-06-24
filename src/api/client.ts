@@ -90,5 +90,11 @@ export const api = {
     get: () => request('/companies/me'),
     update: (body: Record<string, unknown>) => request('/companies/me', { method: 'PATCH', body }),
   },
+  team: {
+    list: () => request('/team'),
+    add: (body: { name: string; email: string; password: string; role?: string }) =>
+      request('/team', { method: 'POST', body }),
+    remove: (id: string) => request(`/team/${id}`, { method: 'DELETE' }),
+  },
   dashboard: { get: () => request('/dashboard/me') },
 };

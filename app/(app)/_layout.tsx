@@ -68,6 +68,7 @@ export default function AppTabs() {
       <Tabs.Screen name="billing" options={{ href: null }} />
       <Tabs.Screen name="expenses" options={{ href: null }} />
       <Tabs.Screen name="company" options={{ href: null }} />
+      <Tabs.Screen name="team" options={{ href: null }} />
     </Tabs>
   );
 }

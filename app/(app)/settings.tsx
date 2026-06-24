@@ -44,6 +44,7 @@ function Row({
   onPress,
   first,
   danger,
+  soon,
 }: {
   icon: LucideIcon;
   label: string;
@@ -51,13 +52,15 @@ function Row({
   onPress?: () => void;
   first?: boolean;
   danger?: boolean;
+  soon?: boolean;
 }) {
   const t = useTheme();
   const color = danger ? t.colors.danger : t.colors.accent;
   const tint = danger ? t.colors.dangerSoft : t.colors.accentSoft;
   return (
     <Pressable
-      onPress={onPress}
+      onPress={soon ? undefined : onPress}
+      disabled={soon}
       accessibilityRole="button"
       style={({ pressed }) => ({
         flexDirection: 'row',
@@ -67,7 +70,8 @@ function Row({
         paddingVertical: 14,
         borderTopWidth: first ? 0 : 1,
         borderTopColor: t.colors.divider,
-        backgroundColor: pressed ? t.colors.surfaceAlt : 'transparent',
+        backgroundColor: pressed && !soon ? t.colors.surfaceAlt : 'transparent',
+        opacity: soon ? 0.6 : 1,
       })}
     >
       <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: tint, alignItems: 'center', justifyContent: 'center' }}>
@@ -76,7 +80,15 @@ function Row({
       <Text variant="bodySm" weight="medium" tone={danger ? 'danger' : 'default'} style={{ flex: 1 }}>
         {label}
       </Text>
-      {right ?? <ChevronRight size={18} color={t.colors.textSubtle} strokeWidth={2.2} />}
+      {soon ? (
+        <View style={{ backgroundColor: t.colors.surfaceAlt, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 }}>
+          <Text variant="micro" weight="semibold" tone="subtle">
+            Soon
+          </Text>
+        </View>
+      ) : (
+        right ?? <ChevronRight size={18} color={t.colors.textSubtle} strokeWidth={2.2} />
+      )}
     </Pressable>
   );
 }
@@ -170,14 +182,14 @@ export default function Settings() {
       <Card elevation={1} padded={false} style={{ overflow: 'hidden' }}>
         <Row first icon={Building2} label="Company profile" onPress={() => router.push('/(app)/company')} />
         <Row icon={CreditCard} label="Billing & plan" onPress={() => router.push('/(app)/billing')} />
-        <Row icon={Users2} label="Team members" />
-        <Row icon={Blocks} label="Integrations" />
+        <Row icon={Users2} label="Team members" onPress={() => router.push('/(app)/team')} />
+        <Row icon={Blocks} label="Integrations" soon />
       </Card>
 
       <SectionLabel>Support</SectionLabel>
       <Card elevation={1} padded={false} style={{ overflow: 'hidden' }}>
-        <Row first icon={LifeBuoy} label="Help center" />
-        <Row icon={ShieldCheck} label="Privacy & security" />
+        <Row first icon={LifeBuoy} label="Help center" soon />
+        <Row icon={ShieldCheck} label="Privacy & security" soon />
       </Card>
 
       <View style={{ marginTop: 8 }}>
