@@ -99,7 +99,9 @@ export function Sheet({
           </View>
           {/* Scrollable so even tall forms stay reachable above the keyboard. */}
           <ScrollView
-            style={{ maxHeight: WIN_H * 0.62 }}
+            // Shrink the scroll area while the keyboard is up so the sheet
+            // (lifted by marginBottom) never grows past the visible space.
+            style={{ maxHeight: kb > 0 ? Math.max(200, WIN_H - kb - 260) : WIN_H * 0.62 }}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="none"
             showsVerticalScrollIndicator={false}

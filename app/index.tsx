@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -54,6 +55,20 @@ export default function Welcome() {
   const t = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  // First launch → show the guided tour so a first-time owner understands
+  // the app before seeing the marketing landing page.
+  useEffect(() => {
+    let cancelled = false;
+    AsyncStorage.getItem('vantage.onboarded.v1')
+      .then((seen) => {
+        if (!cancelled && !seen) router.replace('/onboarding');
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0B1020' }}>

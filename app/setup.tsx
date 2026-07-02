@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, ArrowRight, Check, Minus, Plus, Building2, User, Mail, Lock, Briefcase, Globe, Wallet, TrendingUp } from 'lucide-react-native';
@@ -13,6 +13,7 @@ import { PressableScale, Reveal } from '@/components/motion';
 import { CURRENCIES, INDUSTRIES, PLANS, ANNUAL_DISCOUNT } from '@/data/currencies';
 import { computeBilling } from '@/data/billing';
 import { formatUSD } from '@/data/format';
+import { useKeyboardHeight } from '@/utils/useKeyboardHeight';
 
 const STEP_TITLES = [
   { title: 'Company profile', sub: 'Tell us about your business' },
@@ -35,6 +36,7 @@ export default function Setup() {
   const t = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const kb = useKeyboardHeight();
   const { register } = useAuth();
 
   const [step, setStep] = useState(0);
@@ -147,7 +149,9 @@ export default function Setup() {
         </View>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={8}>
+      {/* Keyboard-height lift works on iOS AND Android edge-to-edge (where
+          KeyboardAvoidingView with adjustResize silently does nothing). */}
+      <View style={{ flex: 1, paddingBottom: kb }}>
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 8, paddingBottom: 24, gap: 20 }}
           keyboardShouldPersistTaps="handled"
@@ -523,7 +527,7 @@ export default function Setup() {
         </ScrollView>
 
         {/* Sticky CTA */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 10, paddingBottom: insets.bottom + 14, borderTopWidth: 1, borderTopColor: t.colors.border, backgroundColor: t.colors.bg }}>
+        <View style={{ paddingHorizontal: 24, paddingTop: 10, paddingBottom: kb > 0 ? 14 : insets.bottom + 14, borderTopWidth: 1, borderTopColor: t.colors.border, backgroundColor: t.colors.bg }}>
           <Button
             label={step < LAST_STEP ? 'Continue' : `Create company · ${formatUSD(bill.dueNow)}`}
             iconRight={step < LAST_STEP ? ArrowRight : Check}
@@ -533,7 +537,7 @@ export default function Setup() {
             nativeID="setup-continue"
           />
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 }

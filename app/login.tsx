@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,15 +10,17 @@ import { Text } from '@/components/Text';
 import { Button } from '@/components/Button';
 import { Field } from '@/components/Field';
 import { LogoMark } from '@/components/Logo';
+import { useKeyboardHeight } from '@/utils/useKeyboardHeight';
 
 export default function Login() {
   const t = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const kb = useKeyboardHeight();
   const { signIn } = useAuth();
 
-  const [email, setEmail] = useState('alex@northwind.io');
-  const [password, setPassword] = useState('vantage');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [formError, setFormError] = useState<string | undefined>();
   const [loading, setLoading] = useState(false);
@@ -69,7 +71,8 @@ export default function Login() {
         </Text>
       </LinearGradient>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* Keyboard-height lift — reliable on iOS and Android edge-to-edge. */}
+      <View style={{ flex: 1, paddingBottom: kb }}>
         <ScrollView
           contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 24, gap: 18 }}
           keyboardShouldPersistTaps="handled"
@@ -131,7 +134,7 @@ export default function Login() {
             .
           </Text>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 }
