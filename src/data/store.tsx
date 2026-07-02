@@ -14,6 +14,7 @@ import {
 } from './mock';
 import { useAuth } from '@/auth/AuthContext';
 import { api, isApiEnabled, getToken } from '@/api/client';
+import { toast } from '@/components/Toast';
 
 /** Map an API customer (entries with kind/amount) to the local Customer shape. */
 function mapApiCustomer(c: any): Customer {
@@ -201,7 +202,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (isApiEnabled() && getToken()) {
         fn()
           .then(() => refresh())
-          .catch((e) => console.warn('[store] mutation failed to persist', e));
+          .catch((e) => {
+            console.warn('[store] mutation failed to persist', e);
+            toast.error(e?.message || 'Could not save your change — check your connection and try again.');
+            // Re-pull so the optimistic UI rolls back to the server's truth.
+            refresh();
+          });
       }
     },
     [refresh],
@@ -255,7 +261,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             email: input.email?.trim() || undefined,
           })
           .then(() => refresh())
-          .catch((e) => console.warn('[store] addCustomer failed to persist', e));
+          .catch((e) => {
+            console.warn('[store] addCustomer failed to persist', e);
+            toast.error(e?.message || 'Could not save the customer — check your connection and try again.');
+            refresh();
+          });
       }
       return id;
     },

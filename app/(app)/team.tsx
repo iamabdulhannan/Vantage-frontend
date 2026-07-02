@@ -15,6 +15,7 @@ import { Sheet } from '@/components/Sheet';
 import { Fab } from '@/components/Fab';
 import { Reveal, PressableScale } from '@/components/motion';
 import { api } from '@/api/client';
+import { toast } from '@/components/Toast';
 import { validatePassword } from '@/utils/password';
 import { PasswordStrength } from '@/components/PasswordStrength';
 
@@ -56,8 +57,9 @@ export default function Team() {
     }
     try {
       await api.team.remove(id);
-    } catch {
-      /* surfaced by reload */
+      toast.success('Member removed — their seat is free again.');
+    } catch (e: any) {
+      toast.error(e?.message || 'Could not remove the member — try again.');
     }
     setConfirmId(null);
     load();

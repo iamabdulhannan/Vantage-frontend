@@ -3,6 +3,7 @@ import { company as defaultCompany } from './mock';
 import { PlanKey, BillingCycle } from './currencies';
 import { useAuth, CompanyProfile } from '@/auth/AuthContext';
 import { api, isApiEnabled, getToken } from '@/api/client';
+import { toast } from '@/components/Toast';
 
 export type { CompanyProfile } from '@/auth/AuthContext';
 
@@ -34,7 +35,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       }
       // Best-effort persistence when a live session is available.
       if (isApiEnabled() && getToken()) {
-        api.billing.update(input).catch(() => {});
+        api.billing.update(input).catch((e) => toast.error(e?.message || 'Could not update billing — try again.'));
       }
     },
     [company, updateCompany],

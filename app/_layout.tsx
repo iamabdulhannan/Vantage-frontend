@@ -15,6 +15,7 @@ import {
   FiraSans_700Bold,
 } from '@expo-google-fonts/fira-sans';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
+import { ToastHost } from '@/components/Toast';
 import { LogoMark } from '@/components/Logo';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { CompanyProvider } from '@/data/company';
@@ -54,6 +55,7 @@ function Gate() {
         <Stack.Screen name="login" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="(app)" />
       </Stack>
+      <ToastHost />
     </>
   );
 }
