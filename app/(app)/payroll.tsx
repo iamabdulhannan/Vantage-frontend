@@ -14,8 +14,9 @@ import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, ProgressBar, PressableScale } from '@/components/motion';
 import { AddEmployeeSheet, EmployeeSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { useCompany } from '@/data/company';
 import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
-import { computePayroll, TAX_RATE, Employee } from '@/data/mock';
+import { computePayroll, Employee } from '@/data/mock';
 import { formatCurrency, formatDate } from '@/data/format';
 import { ChevronRight } from 'lucide-react-native';
 
@@ -41,10 +42,11 @@ function BreakdownCell({ label, value, tone }: { label: string; value: number; t
 export default function Payroll() {
   const t = useTheme();
   const { employees, runPayroll } = useStore();
+  const { company } = useCompany();
   useRefreshOnFocus();
   const [addOpen, setAddOpen] = useState(false);
   const [selected, setSelected] = useState<Employee | null>(null);
-  const pay = computePayroll(employees);
+  const pay = computePayroll(employees, company?.country, company?.currencyCode);
   const allPaid = pay.pendingCount === 0;
   let idx = 0;
 
@@ -72,7 +74,7 @@ export default function Payroll() {
 
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <BreakdownCell label="Gross" value={pay.gross} />
-            <BreakdownCell label={`Tax (${Math.round(TAX_RATE * 100)}%)`} value={pay.tax} tone="warning" />
+            <BreakdownCell label={`Tax (${Math.round(pay.effectiveRate * 100)}%)`} value={pay.tax} tone="warning" />
             <BreakdownCell label="Net" value={pay.net} tone="success" />
           </View>
 

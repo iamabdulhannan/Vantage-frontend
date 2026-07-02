@@ -266,11 +266,13 @@ export const employees: Employee[] = [
   { id: 'e8', name: 'Victor Hsu', role: 'Data Analyst', dept: 'Engineering', initials: 'VH', salary: 10_100, status: 'pending' },
 ];
 
-export const TAX_RATE = 0.12; // statutory deductions
+import { taxRuleFor } from '@/utils/salary-tax';
 
-export function computePayroll(list: Employee[] = employees) {
+export function computePayroll(list: Employee[] = employees, country?: string | null, currencyCode?: string | null) {
+  const rule = taxRuleFor(country, currencyCode);
   const gross = list.reduce((s, e) => s + e.salary, 0);
-  const tax = Math.round(gross * TAX_RATE);
+  // Progressive slabs are per-person — each salary is taxed in its own bracket.
+  const tax = list.reduce((s, e) => s + rule.monthlyTax(e.salary), 0);
   const net = gross - tax;
   const paid = list.filter((e) => e.status === 'paid');
   const pending = list.filter((e) => e.status === 'pending');
@@ -280,6 +282,8 @@ export function computePayroll(list: Employee[] = employees) {
     gross,
     tax,
     net,
+    taxRule: rule.name,
+    effectiveRate: gross ? tax / gross : 0,
     headcount: list.length,
     paidCount: paid.length,
     pendingCount: pending.length,

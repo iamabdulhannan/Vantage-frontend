@@ -59,7 +59,7 @@ export default function Dashboard() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const initials = user?.initials ?? currentUser.initials;
-  const pay = computePayroll(employees);
+  const pay = computePayroll(employees, company?.country, company?.currencyCode);
 
   // Pull the fully-aggregated dashboard from the API when signed in live;
   // refetch after mutations. Falls back to local computation when offline.
