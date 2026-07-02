@@ -165,11 +165,13 @@ export const fonts = {
   medium: 'FiraSans_500Medium',
   semibold: 'FiraSans_600SemiBold',
   bold: 'FiraSans_700Bold',
-  // Numeric / data (tabular feel)
-  monoRegular: 'FiraCode_400Regular',
-  monoMedium: 'FiraCode_500Medium',
-  monoSemibold: 'FiraCode_600SemiBold',
-  monoBold: 'FiraCode_700Bold',
+  // One family app-wide: numeric text uses Fira Sans too (tabular figures
+  // via fontVariant where it matters). The old Fira Code clashed with RTL
+  // currency symbols and made the app feel stitched together.
+  monoRegular: 'FiraSans_400Regular',
+  monoMedium: 'FiraSans_500Medium',
+  monoSemibold: 'FiraSans_600SemiBold',
+  monoBold: 'FiraSans_700Bold',
 } as const;
 
 export const type = {

@@ -39,6 +39,10 @@ export default function CompanyProfileScreen() {
       setError('Enter your company name');
       return;
     }
+    if (toNum(capital) <= 0) {
+      setError('Working capital can’t be 0 — enter your real cash position.');
+      return;
+    }
     setError(undefined);
     setSaving(true);
     try {

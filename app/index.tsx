@@ -7,8 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { ArrowRight, BookOpen, LayoutDashboard, Users2, type LucideIcon } from 'lucide-react-native';
 import { Text } from '@/components/Text';
+import { Button } from '@/components/Button';
 import { LogoMark } from '@/components/Logo';
-import { PressableScale } from '@/components/motion';
 
 const FEATURES: { icon: LucideIcon; tint: string; title: string; sub: string }[] = [
   {
@@ -131,26 +131,7 @@ export default function Welcome() {
 
         {/* CTA */}
         <Animated.View entering={FadeInDown.delay(600).springify().damping(16)} style={{ gap: 16 }}>
-          <PressableScale onPress={() => router.push('/setup')} scaleTo={0.97} accessibilityLabel="Set up your company" nativeID="cta-setup">
-            <LinearGradient
-              colors={['#6366F1', '#22D3EE']}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={{
-                height: 56,
-                borderRadius: 18,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-              }}
-            >
-              <Text weight="bold" style={{ color: '#FFFFFF', fontSize: 16 }}>
-                Set up your company
-              </Text>
-              <ArrowRight size={19} color="#FFFFFF" strokeWidth={2.6} />
-            </LinearGradient>
-          </PressableScale>
+          <Button label="Set up your company" iconRight={ArrowRight} size="lg" onPress={() => router.push('/setup')} nativeID="cta-setup" />
           <Pressable onPress={() => router.push('/login')} hitSlop={8} accessibilityLabel="Sign in" nativeID="cta-signin">
             <Text variant="bodySm" weight="semibold" center style={{ color: 'rgba(235,238,255,0.75)' }}>
               Already have an account? <Text variant="bodySm" weight="bold" style={{ color: '#67E8F9' }}>Sign in</Text>

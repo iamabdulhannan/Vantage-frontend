@@ -42,7 +42,7 @@ export function Button({
   const scale = useSharedValue(1);
   const aStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
-  const heights: Record<Size, number> = { sm: 38, md: 46, lg: 52 };
+  const heights: Record<Size, number> = { sm: 38, md: 48, lg: 56 };
   const height = heights[size];
   const isDisabled = disabled || loading;
 
@@ -65,7 +65,11 @@ export function Button({
       ) : (
         <>
           {Icon && <Icon size={size === 'lg' ? 20 : 18} color={iconColor} strokeWidth={2.2} />}
-          <Text variant={size === 'sm' ? 'bodySm' : 'body'} weight="semibold" tone={textTone as any}>
+          <Text
+            variant={size === 'sm' ? 'bodySm' : 'body'}
+            weight={variant === 'primary' || variant === 'danger' ? 'bold' : 'semibold'}
+            tone={textTone as any}
+          >
             {label}
           </Text>
           {IconRight && <IconRight size={size === 'lg' ? 20 : 18} color={iconColor} strokeWidth={2.2} />}
@@ -76,7 +80,7 @@ export function Button({
 
   const baseStyle: ViewStyle = {
     height,
-    borderRadius: t.radius.lg,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: t.spacing['2xl'],
@@ -95,7 +99,7 @@ export function Button({
       style={[{ width: fullWidth ? '100%' : undefined }, aStyle, style]}
     >
       {variant === 'primary' ? (
-        <LinearGradient colors={t.gradients.accent} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[baseStyle, t.shadow(2)]}>
+        <LinearGradient colors={t.gradients.accent} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={[baseStyle, t.shadow(2)]}>
           {content}
         </LinearGradient>
       ) : (

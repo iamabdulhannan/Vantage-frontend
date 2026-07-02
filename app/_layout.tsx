@@ -14,12 +14,6 @@ import {
   FiraSans_600SemiBold,
   FiraSans_700Bold,
 } from '@expo-google-fonts/fira-sans';
-import {
-  FiraCode_400Regular,
-  FiraCode_500Medium,
-  FiraCode_600SemiBold,
-  FiraCode_700Bold,
-} from '@expo-google-fonts/fira-code';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { LogoMark } from '@/components/Logo';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
@@ -105,10 +99,6 @@ export default function RootLayout() {
     FiraSans_500Medium,
     FiraSans_600SemiBold,
     FiraSans_700Bold,
-    FiraCode_400Regular,
-    FiraCode_500Medium,
-    FiraCode_600SemiBold,
-    FiraCode_700Bold,
   });
 
   return (

@@ -25,8 +25,8 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { Text } from '@/components/Text';
+import { Button } from '@/components/Button';
 import { LogoMark } from '@/components/Logo';
-import { PressableScale } from '@/components/motion';
 
 export const ONBOARDED_KEY = 'vantage.onboarded.v1';
 
@@ -287,26 +287,13 @@ export default function Onboarding() {
             <Dot key={i} index={i} scrollX={scrollX} />
           ))}
         </View>
-        <PressableScale onPress={next} scaleTo={0.97} accessibilityLabel={last ? 'Get started' : 'Next'} nativeID="onboarding-next">
-          <LinearGradient
-            colors={['#6366F1', '#22D3EE']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-            style={{
-              height: 56,
-              borderRadius: 18,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-            }}
-          >
-            <Text weight="bold" style={{ color: '#FFFFFF', fontSize: 16 }}>
-              {last ? 'Get started — it’s easy' : 'Next'}
-            </Text>
-            <ArrowRight size={19} color="#FFFFFF" strokeWidth={2.6} />
-          </LinearGradient>
-        </PressableScale>
+        <Button
+          label={last ? 'Get started — it’s easy' : 'Next'}
+          iconRight={ArrowRight}
+          size="lg"
+          onPress={next}
+          nativeID="onboarding-next"
+        />
       </View>
     </View>
   );

@@ -123,6 +123,8 @@ export default function Setup() {
 
   const next = () => {
     if (step === 0 && companyName.trim().length < 2) return setErr('Enter your company name');
+    if (step === 2 && toNum(capital) <= 0)
+      return setErr('Enter your working capital — a company can’t run on 0. Even a rough figure works.');
     if (step === 3) {
       if (ownerName.trim().length < 2) return setErr('Enter your name');
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setErr('Enter a valid email address');
@@ -316,7 +318,7 @@ export default function Setup() {
                 </View>
 
                 <Field
-                  label={`Working capital (${selectedCurrency.symbol})`}
+                  label={`Working capital (${selectedCurrency.symbol}) *`}
                   icon={Wallet}
                   value={capital}
                   onChangeText={setCapital}
@@ -334,7 +336,7 @@ export default function Setup() {
                 />
                 <Text variant="caption" tone="subtle">
                   These power your CEO dashboard — Working Capital, Total Revenue, Net Profit and cash
-                  runway. You can leave them at 0 and update them anytime from Settings → Company.
+                  runway. Working capital is required; you can fine-tune both anytime from Settings → Company.
                 </Text>
               </View>
             </Reveal>

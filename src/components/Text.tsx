@@ -4,7 +4,7 @@ import { useTheme } from '@/theme/ThemeProvider';
 
 type Variant = 'display' | 'h1' | 'h2' | 'h3' | 'body' | 'bodySm' | 'caption' | 'micro';
 type Weight = 'light' | 'regular' | 'medium' | 'semibold' | 'bold';
-type Tone = 'default' | 'muted' | 'subtle' | 'inverse' | 'accent' | 'success' | 'danger' | 'warning' | 'brandText';
+type Tone = 'default' | 'muted' | 'subtle' | 'inverse' | 'accent' | 'success' | 'danger' | 'warning' | 'brandText' | 'accentText';
 
 interface Props extends TextProps {
   variant?: Variant;
@@ -38,6 +38,7 @@ export function Text({
     danger: t.colors.danger,
     warning: t.colors.warning,
     brandText: t.colors.brandText,
+    accentText: t.colors.accentText, // white — for labels on gradient/accent buttons
   };
 
   const monoMap: Record<Weight, string> = {
