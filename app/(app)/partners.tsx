@@ -50,14 +50,16 @@ export default function Partners() {
       {/* Distribution summary */}
       <Reveal index={1}>
         <Card elevation={2} style={{ gap: 18 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <View style={{ gap: 4 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+            <View style={{ gap: 4, flex: 1, minWidth: 0 }}>
               <Text variant="caption" tone="subtle" weight="medium" style={{ letterSpacing: 0.4 }}>
                 PARTNER REVENUE · FY 2026
               </Text>
               <AnimatedNumber value={totalRevenue} compact size={28} weight="bold" />
             </View>
-            <Badge label={`${activeCount} active`} intent="success" dot />
+            <View style={{ flexShrink: 0 }}>
+              <Badge label={`${activeCount} active`} intent="success" dot />
+            </View>
           </View>
 
           {/* Stacked share bar */}

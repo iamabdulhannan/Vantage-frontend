@@ -228,14 +228,14 @@ export default function Dashboard() {
               <ArrowRight size={20} color={t.colors.textSubtle} strokeWidth={2.2} />
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-              <View>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
                 <Text variant="caption" tone="subtle" weight="medium" style={{ letterSpacing: 0.4 }}>
                   NET THIS MONTH
                 </Text>
                 <AnimatedNumber value={pay.net} compact size={26} weight="bold" />
               </View>
-              <View style={{ alignItems: 'flex-end' }}>
+              <View style={{ alignItems: 'flex-end', flexShrink: 0 }}>
                 <Text variant="caption" tone="subtle">
                   {pay.pendingCount} pending
                 </Text>

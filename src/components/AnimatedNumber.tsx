@@ -78,6 +78,10 @@ export function AnimatedNumber({
           color: color ?? t.colors.text,
           padding: 0,
           margin: 0,
+          // TextInput has a large intrinsic width (scales with font size) —
+          // without these it shoves row siblings outside their card.
+          minWidth: 0,
+          flexShrink: 1,
         },
         style,
       ]}
