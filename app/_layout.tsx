@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, Text as RNText } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence, Easing } from 'react-native-reanimated';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -19,6 +21,7 @@ import {
   FiraCode_700Bold,
 } from '@expo-google-fonts/fira-code';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
+import { LogoMark } from '@/components/Logo';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { CompanyProvider } from '@/data/company';
 import { StoreProvider } from '@/data/store';
@@ -61,11 +64,36 @@ function Gate() {
   );
 }
 
+/** Branded splash — shown while fonts load and the session restores. */
 function ThemedLoader() {
-  const t = useTheme();
+  const pulse = useSharedValue(1);
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1.07, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+    );
+  }, [pulse]);
+  const logoStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
+
   return (
-    <View style={{ flex: 1, backgroundColor: t.colors.bg, alignItems: 'center', justifyContent: 'center' }}>
-      <ActivityIndicator color={t.colors.accent} />
+    <View style={{ flex: 1, backgroundColor: '#0B1020', alignItems: 'center', justifyContent: 'center' }}>
+      <LinearGradient
+        colors={['#0B1020', '#1E1B4B', '#0B1020']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      />
+      <Animated.View style={[{ alignItems: 'center', gap: 16 }, logoStyle]}>
+        <LogoMark size={72} />
+        {/* System font on purpose — this renders before custom fonts load. */}
+        <RNText style={{ color: '#FFFFFF', fontSize: 24, fontWeight: '700', letterSpacing: -0.5 }}>
+          Vantage
+        </RNText>
+      </Animated.View>
+      <RNText style={{ color: 'rgba(235,238,255,0.45)', fontSize: 12, position: 'absolute', bottom: 48 }}>
+        Your business, in full view
+      </RNText>
     </View>
   );
 }

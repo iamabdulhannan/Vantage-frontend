@@ -10,7 +10,7 @@ import { Field } from '@/components/Field';
 import { Button } from '@/components/Button';
 import { LogoMark } from '@/components/Logo';
 import { PressableScale, Reveal } from '@/components/motion';
-import { CURRENCIES, INDUSTRIES, PLANS, ANNUAL_DISCOUNT } from '@/data/currencies';
+import { CURRENCIES, INDUSTRIES, PLANS, ANNUAL_DISCOUNT, currencyForCountry } from '@/data/currencies';
 import { computeBilling } from '@/data/billing';
 import { formatUSD } from '@/data/format';
 import { useKeyboardHeight } from '@/utils/useKeyboardHeight';
@@ -47,6 +47,20 @@ export default function Setup() {
   const [companyName, setCompanyName] = useState('');
   const [industry, setIndustry] = useState(INDUSTRIES[0]);
   const [country, setCountry] = useState('');
+  const [autoCurrency, setAutoCurrency] = useState<string | null>(null);
+
+  // Typing "Pakistan" / "UAE" / "London"… auto-selects the matching currency,
+  // so most founders never have to think about the currency step.
+  const onCountryChange = (text: string) => {
+    setCountry(text);
+    const code = currencyForCountry(text);
+    if (code) {
+      setCurrencyCode(code);
+      setAutoCurrency(code);
+    } else {
+      setAutoCurrency(null);
+    }
+  };
 
   // Step 1 — currency + opening financials
   const [currencyCode, setCurrencyCode] = useState('PKR');
@@ -202,7 +216,17 @@ export default function Setup() {
                     })}
                   </View>
                 </View>
-                <Field label="Country / region" icon={Globe} value={country} onChangeText={setCountry} placeholder="e.g. Pakistan" />
+                <View style={{ gap: 8 }}>
+                  <Field label="Country / region" icon={Globe} value={country} onChangeText={onCountryChange} placeholder="e.g. Pakistan" />
+                  {autoCurrency && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: t.colors.successSoft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 }}>
+                      <Check size={13} color={t.colors.success} strokeWidth={2.8} />
+                      <Text variant="caption" weight="semibold" style={{ color: t.colors.success }}>
+                        Currency set to {autoCurrency} — change it on the next step if needed
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </Reveal>
           )}

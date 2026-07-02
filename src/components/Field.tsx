@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, TextInput, Pressable, TextInputProps } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, interpolateColor } from 'react-native-reanimated';
 import { Eye, EyeOff, LucideIcon } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Text } from './Text';
@@ -16,25 +17,42 @@ export function Field({ label, icon: Icon, error, secure, style, ...rest }: Prop
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(!!secure);
 
-  const borderColor = error ? t.colors.danger : focused ? t.colors.accent : t.colors.border;
+  // Smoothly animate the focus ring instead of snapping — small touch that
+  // makes every form in the app feel polished.
+  const focusSV = useSharedValue(0);
+  useEffect(() => {
+    focusSV.value = withTiming(focused ? 1 : 0, { duration: 160 });
+  }, [focused, focusSV]);
+
+  const ringStyle = useAnimatedStyle(() => ({
+    borderColor: error
+      ? t.colors.danger
+      : interpolateColor(focusSV.value, [0, 1], [t.colors.border, t.colors.accent]),
+    shadowOpacity: focusSV.value * 0.35,
+  }));
 
   return (
     <View style={{ gap: 7 }}>
       <Text variant="bodySm" weight="medium" tone="muted">
         {label}
       </Text>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          height: 48,
-          borderRadius: t.radius.lg,
-          borderWidth: 1.5,
-          borderColor,
-          backgroundColor: t.colors.surface,
-          paddingHorizontal: 14,
-          gap: 10,
-        }}
+      <Animated.View
+        style={[
+          {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: 48,
+            borderRadius: t.radius.lg,
+            borderWidth: 1.5,
+            backgroundColor: t.colors.surface,
+            paddingHorizontal: 14,
+            gap: 10,
+            shadowColor: t.colors.accent,
+            shadowOffset: { width: 0, height: 0 },
+            shadowRadius: 6,
+          },
+          ringStyle,
+        ]}
       >
         {Icon && <Icon size={18} color={focused ? t.colors.accent : t.colors.textSubtle} strokeWidth={2.2} />}
         <TextInput
@@ -66,7 +84,7 @@ export function Field({ label, icon: Icon, error, secure, style, ...rest }: Prop
             )}
           </Pressable>
         )}
-      </View>
+      </Animated.View>
       {error ? (
         <Text variant="caption" tone="danger" weight="medium">
           {error}

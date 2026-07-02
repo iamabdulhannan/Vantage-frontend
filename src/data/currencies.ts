@@ -17,6 +17,36 @@ export const CURRENCIES: Currency[] = [
   { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
 ];
 
+/**
+ * Country / region → default currency. Matching is fuzzy (lowercased,
+ * substring) so "UAE", "Dubai" or "United Arab Emirates" all resolve to AED.
+ */
+const COUNTRY_CURRENCY: [string[], string][] = [
+  [['pakistan'], 'PKR'],
+  [['india'], 'INR'],
+  [['united arab emirates', 'uae', 'dubai', 'abu dhabi', 'emirates', 'sharjah'], 'AED'],
+  [['saudi', 'ksa', 'riyadh', 'jeddah'], 'SAR'],
+  [['bangladesh', 'dhaka'], 'BDT'],
+  [['nigeria', 'lagos'], 'NGN'],
+  [['south africa', 'johannesburg', 'cape town'], 'ZAR'],
+  [['united kingdom', 'uk', 'britain', 'england', 'scotland', 'wales', 'london'], 'GBP'],
+  [['united states', 'usa', 'america', 'u.s', 'canada', 'ecuador'], 'USD'],
+  [
+    ['germany', 'france', 'spain', 'italy', 'netherlands', 'ireland', 'portugal', 'belgium', 'austria', 'finland', 'greece', 'europe'],
+    'EUR',
+  ],
+];
+
+/** Best-guess currency code for a typed country/region, or null if unknown. */
+export function currencyForCountry(country: string): string | null {
+  const q = country.trim().toLowerCase();
+  if (q.length < 2) return null;
+  for (const [aliases, code] of COUNTRY_CURRENCY) {
+    if (aliases.some((a) => q.includes(a) || a.startsWith(q))) return code;
+  }
+  return null;
+}
+
 export const INDUSTRIES = [
   'Retail & Trade',
   'Wholesale / Distribution',

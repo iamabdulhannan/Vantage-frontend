@@ -48,6 +48,8 @@ export default function Dashboard() {
   const { user, token } = useAuth();
   const { name: companyName, fiscalYear } = useCompany();
   const greetName = (user?.name ?? currentUser.name).split(' ')[0];
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const initials = user?.initials ?? currentUser.initials;
   const pay = computePayroll(employees);
 
@@ -113,7 +115,7 @@ export default function Dashboard() {
       <Reveal index={idx++}>
         <Header
           title="Overview"
-          subtitle={`Good morning, ${greetName}`}
+          subtitle={`${greeting}, ${greetName}`}
           initials={initials}
           onBell={() => router.push('/(app)/notifications')}
           unread={activityList.length > 0}
