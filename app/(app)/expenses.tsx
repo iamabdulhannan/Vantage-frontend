@@ -10,8 +10,9 @@ import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { DonutChart, DonutLegend } from '@/components/charts/DonutChart';
 import { Reveal, PressableScale } from '@/components/motion';
 import { Fab } from '@/components/Fab';
-import { AddExpenseSheet } from '@/components/sheets';
+import { AddExpenseSheet, EditExpenseSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import type { ExpenseSlice } from '@/data/mock';
 import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { formatCurrency, relativeDate } from '@/data/format';
 
@@ -19,6 +20,7 @@ export default function Expenses() {
   const t = useTheme();
   const router = useRouter();
   const { expenses, removeExpense } = useStore();
+  const [editExpense, setEditExpense] = useState<ExpenseSlice | null>(null);
   useRefreshOnFocus();
   const [addOpen, setAddOpen] = useState(false);
 
@@ -101,9 +103,12 @@ export default function Expenses() {
             </View>
           ) : (
             expenses.map((e, i) => (
-              <View
+              <Pressable
                 key={e.id ?? `${e.label}-${i}`}
-                style={{
+                onPress={() => e.id && setEditExpense(e)}
+                nativeID={`expense-${i}`}
+                accessibilityLabel={`Edit ${e.label}`}
+                style={({ pressed }) => ({
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 12,
@@ -111,7 +116,8 @@ export default function Expenses() {
                   paddingVertical: 13,
                   borderTopWidth: i === 0 ? 0 : 1,
                   borderTopColor: t.colors.divider,
-                }}
+                  backgroundColor: pressed ? t.colors.surfaceAlt : 'transparent',
+                })}
               >
                 <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: t.colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' }}>
                   <View style={{ width: 12, height: 12, borderRadius: 4, backgroundColor: e.color }} />
@@ -135,7 +141,7 @@ export default function Expenses() {
                 >
                   <Trash2 size={16} color={t.colors.danger} strokeWidth={2.2} />
                 </PressableScale>
-              </View>
+              </Pressable>
             ))
           )}
         </Card>
@@ -143,6 +149,7 @@ export default function Expenses() {
 
       <Fab icon={Plus} label="Add expense" onPress={() => setAddOpen(true)} />
       <AddExpenseSheet visible={addOpen} onClose={() => setAddOpen(false)} />
+      <EditExpenseSheet visible={editExpense !== null} expense={editExpense} onClose={() => setEditExpense(null)} />
     </View>
   );
 }

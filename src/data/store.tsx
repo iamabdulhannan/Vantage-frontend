@@ -104,9 +104,13 @@ interface StoreValue {
   /** Delete a ledger entry. */
   removeEntry: (customerId: string, entryId: string) => void;
   addExpense: (input: { label: string; value: number; note?: string }) => void;
+  /** Edit an expense (category / amount / note). */
+  updateExpense: (id: string, patch: { label?: string; value?: number; note?: string }) => void;
   /** Delete an expense record. */
   removeExpense: (id: string) => void;
   addEmployee: (input: { name: string; role: string; dept: string; salary: number }) => void;
+  /** Edit an employee's profile (name / role / dept / salary — full set). */
+  updateEmployee: (id: string, patch: { name?: string; role?: string; dept?: string; salary?: number }) => void;
   /** Permanently remove an employee from payroll (super-admin action). */
   removeEmployee: (id: string) => void;
   /** Raise an employee's monthly salary by `amount`; resets them to pending. */
@@ -120,6 +124,10 @@ interface StoreValue {
     phone?: string;
     email?: string;
   }) => void;
+  /** Edit a partner (profile / share / revenue / status). */
+  updatePartner: (id: string, patch: Partial<Omit<Partner, 'id' | 'delta'>>) => void;
+  /** Remove a partner from the split. */
+  removePartner: (id: string) => void;
   /** Disburse every pending salary; returns the amount paid out. */
   runPayroll: () => number;
   /** Re-pull all data from the API (real-time refresh). */
@@ -401,6 +409,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     syncThenRefresh(() => api.expenses.remove(id));
   }, [syncThenRefresh]);
 
+  const updateExpense = useCallback(
+    (id: string, patch: { label?: string; value?: number; note?: string }) => {
+      setExpenses((prev) =>
+        prev.map((e) =>
+          e.id !== id
+            ? e
+            : {
+                ...e,
+                label: patch.label?.trim() || e.label,
+                value: patch.value ?? e.value,
+                note: patch.note !== undefined ? patch.note.trim() || undefined : e.note,
+              },
+        ),
+      );
+      syncThenRefresh(() => api.expenses.update(id, patch));
+    },
+    [syncThenRefresh],
+  );
+
   const runPayroll = useCallback(() => {
     let disbursed = 0;
     setEmployees((prev) => {
@@ -432,6 +459,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setEmployees((prev) => prev.filter((e) => e.id !== id));
     syncThenRefresh(() => api.employees.remove(id));
   }, [syncThenRefresh]);
+
+  const updateEmployee = useCallback(
+    (id: string, patch: { name?: string; role?: string; dept?: string; salary?: number }) => {
+      setEmployees((prev) =>
+        prev.map((e) => {
+          if (e.id !== id) return e;
+          const salaryChanged = patch.salary !== undefined && patch.salary !== e.salary;
+          return {
+            ...e,
+            name: patch.name?.trim() || e.name,
+            role: patch.role !== undefined ? patch.role.trim() || 'Team member' : e.role,
+            dept: patch.dept !== undefined ? patch.dept.trim() || 'General' : e.dept,
+            salary: patch.salary ?? e.salary,
+            initials: patch.name ? initialsFrom(patch.name) : e.initials,
+            status: salaryChanged ? 'pending' : e.status,
+          };
+        }),
+      );
+      syncThenRefresh(() => api.employees.update(id, patch));
+    },
+    [syncThenRefresh],
+  );
 
   const incrementSalary = useCallback(
     (id: string, amount: number) => {
@@ -482,6 +531,33 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [syncThenRefresh]
   );
 
+  const updatePartner = useCallback(
+    (id: string, patch: Partial<Omit<Partner, 'id' | 'delta'>>) => {
+      setPartners((prev) => prev.map((p) => (p.id !== id ? p : { ...p, ...patch })));
+      syncThenRefresh(() =>
+        api.partners.update(id, {
+          name: patch.name?.trim(),
+          region: patch.region?.trim() || undefined,
+          contact: patch.contact?.trim() || undefined,
+          phone: patch.phone?.trim() || undefined,
+          email: patch.email?.trim() || undefined,
+          share: patch.share,
+          revenue: patch.revenue,
+          status: patch.status,
+        }),
+      );
+    },
+    [syncThenRefresh],
+  );
+
+  const removePartner = useCallback(
+    (id: string) => {
+      setPartners((prev) => prev.filter((p) => p.id !== id));
+      syncThenRefresh(() => api.partners.remove(id));
+    },
+    [syncThenRefresh],
+  );
+
   const value = useMemo<StoreValue>(
     () => ({
       customers,
@@ -497,11 +573,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       updateEntry,
       removeEntry,
       addExpense,
+      updateExpense,
       removeExpense,
       addEmployee,
+      updateEmployee,
       removeEmployee,
       incrementSalary,
       addPartner,
+      updatePartner,
+      removePartner,
       runPayroll,
       refresh,
     }),
@@ -519,11 +599,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       updateEntry,
       removeEntry,
       addExpense,
+      updateExpense,
       removeExpense,
       addEmployee,
+      updateEmployee,
       removeEmployee,
       incrementSalary,
       addPartner,
+      updatePartner,
+      removePartner,
       runPayroll,
       refresh,
     ]

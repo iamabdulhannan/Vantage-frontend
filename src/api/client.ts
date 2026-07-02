@@ -83,15 +83,19 @@ export const api = {
   expenses: {
     list: () => request('/expenses'),
     create: (body: { label: string; value: number; note?: string }) => request('/expenses', { method: 'POST', body }),
+    update: (id: string, body: Record<string, unknown>) => request(`/expenses/${id}`, { method: 'PATCH', body }),
     remove: (id: string) => request(`/expenses/${id}`, { method: 'DELETE' }),
   },
   partners: {
     list: () => request('/partners'),
     create: (body: Record<string, unknown>) => request('/partners', { method: 'POST', body }),
+    update: (id: string, body: Record<string, unknown>) => request(`/partners/${id}`, { method: 'PATCH', body }),
+    remove: (id: string) => request(`/partners/${id}`, { method: 'DELETE' }),
   },
   employees: {
     list: () => request('/employees'),
     create: (body: Record<string, unknown>) => request('/employees', { method: 'POST', body }),
+    update: (id: string, body: Record<string, unknown>) => request(`/employees/${id}`, { method: 'PATCH', body }),
     increment: (id: string, amount: number) =>
       request(`/employees/${id}/increment`, { method: 'PATCH', body: { amount } }),
     remove: (id: string) => request(`/employees/${id}`, { method: 'DELETE' }),

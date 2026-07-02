@@ -9,8 +9,8 @@ import { Card } from '@/components/Card';
 import { Badge } from '@/components/Badge';
 import { Fab } from '@/components/Fab';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
-import { Reveal } from '@/components/motion';
-import { AddPartnerSheet } from '@/components/sheets';
+import { Reveal, PressableScale } from '@/components/motion';
+import { AddPartnerSheet, EditPartnerSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
 import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { Partner } from '@/data/mock';
@@ -29,6 +29,7 @@ export default function Partners() {
   const { partners } = useStore();
   useRefreshOnFocus();
   const [addOpen, setAddOpen] = useState(false);
+  const [editPartner, setEditPartner] = useState<Partner | null>(null);
   const totalRevenue = partners.reduce((s, p) => s + p.revenue, 0);
   const totalShare = partners.reduce((s, p) => s + p.share, 0);
   const activeCount = partners.filter((p) => p.status === 'active').length;
@@ -120,6 +121,7 @@ export default function Partners() {
           const status = STATUS[p.status];
           return (
             <Reveal key={p.id} index={2 + i}>
+            <PressableScale onPress={() => setEditPartner(p)} nativeID={`partner-${i}`} scaleTo={0.985} accessibilityLabel={`Edit ${p.name}`}>
             <Card elevation={1} style={{ gap: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <View
@@ -187,6 +189,7 @@ export default function Partners() {
                 </View>
               </View>
             </Card>
+            </PressableScale>
             </Reveal>
           );
         })}
@@ -194,6 +197,7 @@ export default function Partners() {
     </Screen>
     <Fab icon={UserPlus} label="Add partner" onPress={() => setAddOpen(true)} />
     <AddPartnerSheet visible={addOpen} onClose={() => setAddOpen(false)} />
+    <EditPartnerSheet visible={editPartner !== null} partner={editPartner} onClose={() => setEditPartner(null)} />
     </View>
   );
 }

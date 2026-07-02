@@ -10,7 +10,7 @@ import { Avatar } from './Avatar';
 import { Badge } from './Badge';
 import { PressableScale } from './motion';
 import { useStore } from '@/data/store';
-import { Employee, LedgerEntry } from '@/data/mock';
+import { Employee, LedgerEntry, ExpenseSlice, Partner } from '@/data/mock';
 import { currencySymbol, formatCurrency } from '@/data/format';
 
 function parseAmount(s: string): number {
@@ -449,6 +449,193 @@ export function AddExpenseSheet({ visible, onClose }: { visible: boolean; onClos
 
 /* -------------------------------------------------------------------------- */
 
+export function EditExpenseSheet({
+  visible,
+  onClose,
+  expense,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  expense: ExpenseSlice | null;
+}) {
+  const { updateExpense, removeExpense } = useStore();
+  const [label, setLabel] = useState('');
+  const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+  const [error, setError] = useState<string | undefined>();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (visible && expense) {
+      setLabel(expense.label);
+      setAmount(String(expense.value));
+      setNote(expense.note ?? '');
+      setError(undefined);
+      setConfirmDelete(false);
+    }
+  }, [visible, expense?.id]);
+
+  if (!expense || !expense.id) return null;
+  const id = expense.id;
+
+  const save = () => {
+    const value = parseAmount(amount);
+    if (label.trim().length < 2) return setError('Enter an expense category');
+    if (value <= 0) return setError('Enter an amount greater than 0');
+    updateExpense(id, { label, value, note });
+    onClose();
+  };
+
+  const del = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    removeExpense(id);
+    onClose();
+  };
+
+  return (
+    <Sheet visible={visible} onClose={onClose} title="Edit expense" subtitle="Update or delete this record">
+      <View style={{ gap: 16 }}>
+        <Field label="Category" icon={Tag} value={label} onChangeText={setLabel} placeholder="e.g. Travel" />
+        <Field label={`Amount (${currencySymbol()})`} icon={Hash} value={amount} onChangeText={setAmount} placeholder="0" keyboardType="numeric" error={error} />
+        <Field label="Note (optional)" icon={FileText} value={note} onChangeText={setNote} placeholder="e.g. Q3 ad campaign" />
+        <Button label="Save changes" onPress={save} nativeID="save-expense-edit" />
+        <Button
+          label={confirmDelete ? 'Tap again to confirm delete' : 'Delete expense'}
+          variant="danger"
+          icon={Trash2}
+          onPress={del}
+          nativeID="delete-expense"
+        />
+      </View>
+    </Sheet>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+
+const PARTNER_STATUSES: { key: Partner['status']; label: string }[] = [
+  { key: 'active', label: 'Active' },
+  { key: 'review', label: 'In review' },
+  { key: 'paused', label: 'Paused' },
+];
+
+export function EditPartnerSheet({
+  visible,
+  onClose,
+  partner,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  partner: Partner | null;
+}) {
+  const t = useTheme();
+  const { updatePartner, removePartner } = useStore();
+  const [name, setName] = useState('');
+  const [region, setRegion] = useState('');
+  const [contact, setContact] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [share, setShare] = useState('');
+  const [revenue, setRevenue] = useState('');
+  const [status, setStatus] = useState<Partner['status']>('active');
+  const [error, setError] = useState<string | undefined>();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(() => {
+    if (visible && partner) {
+      setName(partner.name);
+      setRegion(partner.region || '');
+      setContact(partner.contact || '');
+      setPhone(partner.phone || '');
+      setEmail(partner.email || '');
+      setShare(String(partner.share));
+      setRevenue(String(partner.revenue));
+      setStatus(partner.status);
+      setError(undefined);
+      setConfirmDelete(false);
+    }
+  }, [visible, partner?.id]);
+
+  if (!partner) return null;
+
+  const save = () => {
+    const shareValue = parseAmount(share);
+    const revenueValue = parseAmount(revenue);
+    if (name.trim().length < 2) return setError('Enter the partner name');
+    if (shareValue <= 0 || shareValue > 100) return setError('Enter a share between 1 and 100');
+    if (email.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError('Enter a valid email address');
+    updatePartner(partner.id, { name, region, contact, phone, email, share: shareValue, revenue: revenueValue, status });
+    onClose();
+  };
+
+  const del = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    removePartner(partner.id);
+    onClose();
+  };
+
+  return (
+    <Sheet visible={visible} onClose={onClose} title="Edit partner" subtitle="Update the split, status or details">
+      <View style={{ gap: 16 }}>
+        {/* Status pills */}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {PARTNER_STATUSES.map(({ key, label }) => {
+            const active = status === key;
+            return (
+              <PressableScale
+                key={key}
+                onPress={() => setStatus(key)}
+                scaleTo={0.96}
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                  borderRadius: t.radius.md,
+                  alignItems: 'center',
+                  backgroundColor: active ? t.colors.accentSoft : t.colors.surfaceAlt,
+                  borderWidth: 1,
+                  borderColor: active ? t.colors.accent : 'transparent',
+                }}
+              >
+                <Text variant="bodySm" weight={active ? 'semibold' : 'regular'} tone={active ? 'accent' : 'muted'}>
+                  {label}
+                </Text>
+              </PressableScale>
+            );
+          })}
+        </View>
+        <Field label="Partner / firm name *" icon={Building2} value={name} onChangeText={setName} placeholder="e.g. Crescent Capital" />
+        <Field label="Contact person" icon={User} value={contact} onChangeText={setContact} placeholder="e.g. Imran Sheikh" />
+        <Field label="Region" icon={MapPin} value={region} onChangeText={setRegion} placeholder="e.g. EMEA" />
+        <Field label="Phone number" icon={Phone} value={phone} onChangeText={setPhone} placeholder="e.g. 0300 1234567" keyboardType="phone-pad" />
+        <Field label="Email (optional)" icon={Mail} value={email} onChangeText={setEmail} placeholder="e.g. imran@crescent.com" keyboardType="email-address" autoCapitalize="none" />
+        <Field label="Revenue share (%)" icon={Percent} value={share} onChangeText={setShare} placeholder="0" keyboardType="numeric" />
+        <Field label={`Revenue contribution (${currencySymbol()})`} icon={Hash} value={revenue} onChangeText={setRevenue} placeholder="0" keyboardType="numeric" />
+        {error && (
+          <Text variant="caption" tone="danger" weight="medium">
+            {error}
+          </Text>
+        )}
+        <Button label="Save changes" onPress={save} nativeID="save-partner-edit" />
+        <Button
+          label={confirmDelete ? 'Tap again to remove partner' : 'Remove partner'}
+          variant="danger"
+          icon={Trash2}
+          onPress={del}
+          nativeID="delete-partner"
+        />
+      </View>
+    </Sheet>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+
 export function AddEmployeeSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { addEmployee } = useStore();
   const [name, setName] = useState('');
@@ -583,20 +770,36 @@ export function AddPartnerSheet({ visible, onClose }: { visible: boolean; onClos
 
 export function EmployeeSheet({ visible, onClose, employee }: { visible: boolean; onClose: () => void; employee: Employee | null }) {
   const t = useTheme();
-  const { incrementSalary, removeEmployee } = useStore();
+  const { incrementSalary, removeEmployee, updateEmployee } = useStore();
   const [amount, setAmount] = useState('');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
+  const [dept, setDept] = useState('');
+  const [salary, setSalary] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   useEffect(() => {
-    if (visible) {
+    if (visible && employee) {
       setAmount('');
+      setName(employee.name);
+      setRole(employee.role);
+      setDept(employee.dept);
+      setSalary(String(employee.salary));
       setError(undefined);
       setConfirmRemove(false);
     }
   }, [visible, employee?.id]);
 
   if (!employee) return null;
+
+  const saveProfile = () => {
+    const salaryValue = parseAmount(salary);
+    if (name.trim().length < 2) return setError('Enter the employee name');
+    if (salaryValue <= 0) return setError('Enter a monthly salary greater than 0');
+    updateEmployee(employee.id, { name, role, dept, salary: salaryValue });
+    onClose();
+  };
 
   const applyIncrement = () => {
     const value = parseAmount(amount);
@@ -637,6 +840,17 @@ export function EmployeeSheet({ visible, onClose, employee }: { visible: boolean
             </Text>
             <Badge label={employee.status === 'paid' ? 'Paid' : 'Pending'} intent={employee.status === 'paid' ? 'success' : 'warning'} dot />
           </View>
+        </View>
+
+        <View style={{ height: 1, backgroundColor: t.colors.divider }} />
+
+        {/* Edit profile — name / role / dept / salary (full set, can go down) */}
+        <View style={{ gap: 12 }}>
+          <Field label="Full name" icon={User} value={name} onChangeText={setName} placeholder="e.g. Sara Ahmed" />
+          <Field label="Role" icon={Briefcase} value={role} onChangeText={setRole} placeholder="e.g. Backend Engineer" />
+          <Field label="Department" icon={Users2} value={dept} onChangeText={setDept} placeholder="e.g. Engineering" />
+          <Field label={`Monthly salary (${currencySymbol()})`} icon={Hash} value={salary} onChangeText={setSalary} placeholder="0" keyboardType="numeric" />
+          <Button label="Save changes" variant="secondary" onPress={saveProfile} nativeID="save-employee-edit" />
         </View>
 
         <View style={{ height: 1, backgroundColor: t.colors.divider }} />
