@@ -17,6 +17,15 @@ export function isApiEnabled() {
   return BASE.length > 0;
 }
 
+// Called when any authenticated request comes back 401 (expired/revoked JWT).
+// AuthContext registers a handler that signs the user out with a message —
+// without this, an expired session silently failed and screens fell back to
+// stale or fake data.
+let onUnauthorized: (() => void) | null = null;
+export function setOnUnauthorized(fn: (() => void) | null) {
+  onUnauthorized = fn;
+}
+
 async function request<T = any>(
   path: string,
   options: { method?: string; body?: unknown; auth?: boolean } = {},
@@ -37,6 +46,10 @@ async function request<T = any>(
     const text = await res.text();
     const data = text ? JSON.parse(text) : null;
     if (!res.ok) {
+      if (res.status === 401 && options.auth !== false && token) {
+        // Token no longer valid — force a clean sign-out.
+        onUnauthorized?.();
+      }
       const msg = data && (Array.isArray(data.message) ? data.message.join(', ') : data.message || data.error);
       throw new Error(msg || `Request failed (${res.status})`);
     }

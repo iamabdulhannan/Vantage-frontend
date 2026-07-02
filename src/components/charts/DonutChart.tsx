@@ -28,7 +28,9 @@ export function DonutChart({
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <Svg width={size} height={size}>
-        <G rotation={-90} originX={size / 2} originY={size / 2}>
+        {/* transform string instead of rotation/origin props — the props emit an
+            invalid `transform-origin` DOM attribute on web (console noise). */}
+        <G transform={`rotate(-90 ${size / 2} ${size / 2})`}>
           <Circle
             cx={size / 2}
             cy={size / 2}

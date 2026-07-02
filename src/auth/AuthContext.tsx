@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { PlanKey, BillingCycle } from '@/data/currencies';
 import { setCurrencySymbol } from '@/data/format';
-import { api, setToken, isApiEnabled } from '@/api/client';
+import { api, setToken, isApiEnabled, setOnUnauthorized } from '@/api/client';
 import { loadSession, saveSession, clearSession } from './session-storage';
 
 export interface SessionUser {
@@ -59,6 +59,8 @@ interface AuthContextValue {
   hydrating: boolean;
   /** True when the active session came from the live API (not the local fallback). */
   online: boolean;
+  /** True when the last session ended because the token expired — login shows a notice. */
+  sessionExpired: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   updateCompany: (company: CompanyProfile) => void;
@@ -111,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [tokenState, setTokenState] = useState<string | null>(null);
   const [online, setOnline] = useState(false);
   const [hydrating, setHydrating] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // Restore a persisted session on launch.
   useEffect(() => {
@@ -125,6 +128,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCompany(s.company);
         if (s.company) setCurrencySymbol(s.company.currencySymbol);
         setOnline(true);
+        // Validate the restored token immediately — if it expired while the
+        // app was closed, the 401 handler signs out with a notice instead of
+        // letting screens render stale data.
+        api.auth.me().catch(() => {});
       } else if (s) {
         await clearSession();
       }
@@ -143,6 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, company, tokenState, hydrating]);
 
   const applySession = useCallback((r: any) => {
+    setSessionExpired(false);
     setToken(r.token);
     setTokenState(r.token);
     const u = mapUser(r.user);
@@ -214,9 +222,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCompany(null);
   }, []);
 
+  // Any authed request that returns 401 forces a clean sign-out; the login
+  // screen tells the user their session expired.
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      setSessionExpired(true);
+      signOut();
+    });
+    return () => setOnUnauthorized(null);
+  }, [signOut]);
+
   return (
     <AuthContext.Provider
-      value={{ user, company, signedIn: !!user, token: tokenState, hydrating, online, signIn, register, updateCompany, saveCompany, signOut }}
+      value={{ user, company, signedIn: !!user, token: tokenState, hydrating, online, sessionExpired, signIn, register, updateCompany, saveCompany, signOut }}
     >
       {children}
     </AuthContext.Provider>

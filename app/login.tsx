@@ -17,7 +17,7 @@ export default function Login() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const kb = useKeyboardHeight();
-  const { signIn } = useAuth();
+  const { signIn, sessionExpired } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,6 +77,13 @@ export default function Login() {
           contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 24, gap: 18 }}
           keyboardShouldPersistTaps="handled"
         >
+          {sessionExpired && (
+            <View style={{ backgroundColor: t.colors.warningSoft, borderRadius: t.radius.md, padding: 12 }}>
+              <Text variant="bodySm" weight="medium" tone="warning">
+                Your session expired. Please sign in again.
+              </Text>
+            </View>
+          )}
           <View style={{ gap: 16 }}>
             <Field
               label="Email address"

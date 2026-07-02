@@ -19,8 +19,16 @@ import { useStore } from '@/data/store';
 import { useAuth } from '@/auth/AuthContext';
 import { useCompany } from '@/data/company';
 import { api, isApiEnabled } from '@/api/client';
-import { kpis, monthlySeries, currentUser, computePayroll } from '@/data/mock';
+import { kpis, currentUser, computePayroll } from '@/data/mock';
 import { formatCurrency, relativeDate } from '@/data/format';
+
+// 12 zero months with real labels — shown until the live aggregate arrives.
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const EMPTY_SERIES = Array.from({ length: 12 }, (_, i) => {
+  const d = new Date();
+  d.setMonth(d.getMonth() - (11 - i));
+  return { label: MONTH_LABELS[d.getMonth()], revenue: 0, expense: 0 };
+});
 
 function MiniMetric({ icon: Icon, label, value, tint }: any) {
   const t = useTheme();
@@ -46,7 +54,7 @@ export default function Dashboard() {
   const [expenseOpen, setExpenseOpen] = useState(false);
   const { expenses, employees, activity, receipts, refresh } = useStore();
   const { user, token } = useAuth();
-  const { name: companyName, fiscalYear } = useCompany();
+  const { company, name: companyName, fiscalYear } = useCompany();
   const greetName = (user?.name ?? currentUser.name).split(' ')[0];
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -80,19 +88,21 @@ export default function Dashboard() {
     }, [refresh, loadAgg]),
   );
 
+  // Real values only: before the aggregate arrives (or if it fails) we show
+  // store-derived figures — never the demo numbers from mock.ts. kpis[] is
+  // used purely for labels/intents; mock deltas and sparklines are always
+  // stripped so fabricated growth can never render.
   const localExpense = expenses.reduce((s, d) => s + d.value, 0);
-  const revenue = agg ? agg.kpis.revenue : kpis[0].value + receipts;
-  const capital = agg ? agg.kpis.capital : kpis[1].value;
+  const revenue = agg ? agg.kpis.revenue : receipts;
+  const capital = agg ? agg.kpis.capital : company?.capital ?? 0;
   const totalExpense = agg ? agg.kpis.expenses : localExpense;
   const profit = agg ? agg.kpis.profit : revenue - totalExpense;
-  // Deltas/sparklines come from real month-over-month data when live; the StatCard hides
-  // them when there's no history (so a brand-new company shows no fabricated growth).
   const tr = agg?.trends;
   const liveKpis = [
-    { ...kpis[0], value: revenue, ...(tr ? { delta: tr.revenue?.delta ?? null, spark: tr.revenue?.spark ?? [] } : {}) },
-    { ...kpis[1], value: capital, ...(tr ? { delta: tr.capital?.delta ?? null, spark: tr.capital?.spark ?? [] } : {}) },
-    { ...kpis[2], value: totalExpense, ...(tr ? { delta: tr.expenses?.delta ?? null, spark: tr.expenses?.spark ?? [] } : {}) },
-    { ...kpis[3], value: profit, ...(tr ? { delta: tr.profit?.delta ?? null, spark: tr.profit?.spark ?? [] } : {}) },
+    { ...kpis[0], value: revenue, delta: tr?.revenue?.delta ?? null, spark: tr?.revenue?.spark ?? [] },
+    { ...kpis[1], value: capital, delta: tr?.capital?.delta ?? null, spark: tr?.capital?.spark ?? [] },
+    { ...kpis[2], value: totalExpense, delta: tr?.expenses?.delta ?? null, spark: tr?.expenses?.spark ?? [] },
+    { ...kpis[3], value: profit, delta: tr?.profit?.delta ?? null, spark: tr?.profit?.spark ?? [] },
   ];
 
   // CEO metrics
@@ -106,7 +116,7 @@ export default function Dashboard() {
   // Charts/activity prefer live data, fall back to the local store.
   const donutData = agg && agg.expenseBreakdown?.length ? agg.expenseBreakdown : expenses;
   const activityList = agg && agg.activity?.length ? agg.activity : activity;
-  const chartSeries = agg?.series?.length ? agg.series : monthlySeries;
+  const chartSeries = agg?.series?.length ? agg.series : EMPTY_SERIES;
 
   let idx = 0;
 

@@ -128,11 +128,16 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [customers, setCustomers] = useState<Customer[]>(() => seedCustomers.map((c) => recalc(c)));
-  const [expenses, setExpenses] = useState<ExpenseSlice[]>(() => seedExpenses.map((e, i) => ({ ...e, id: `seed-exp-${i}` })));
-  const [employees, setEmployees] = useState<Employee[]>(() => seedEmployees.map((e) => ({ ...e })));
-  const [partners, setPartners] = useState<Partner[]>(() => seedPartners.map((p) => ({ ...p })));
-  const [activity, setActivity] = useState<ActivityItem[]>(() => seedActivity.map((a) => ({ ...a })));
+  // With a live API the app must NEVER show demo data — an expired session or
+  // failed refresh should show empty state, not fake customers and revenue.
+  const live = isApiEnabled();
+  const [customers, setCustomers] = useState<Customer[]>(() => (live ? [] : seedCustomers.map((c) => recalc(c))));
+  const [expenses, setExpenses] = useState<ExpenseSlice[]>(() =>
+    live ? [] : seedExpenses.map((e, i) => ({ ...e, id: `seed-exp-${i}` })),
+  );
+  const [employees, setEmployees] = useState<Employee[]>(() => (live ? [] : seedEmployees.map((e) => ({ ...e }))));
+  const [partners, setPartners] = useState<Partner[]>(() => (live ? [] : seedPartners.map((p) => ({ ...p }))));
+  const [activity, setActivity] = useState<ActivityItem[]>(() => (live ? [] : seedActivity.map((a) => ({ ...a }))));
   const [receipts, setReceipts] = useState(0);
 
   const { token } = useAuth();
