@@ -15,6 +15,8 @@ import { Sheet } from '@/components/Sheet';
 import { Fab } from '@/components/Fab';
 import { Reveal, PressableScale } from '@/components/motion';
 import { api } from '@/api/client';
+import { validatePassword } from '@/utils/password';
+import { PasswordStrength } from '@/components/PasswordStrength';
 
 interface Member {
   id: string;
@@ -193,7 +195,8 @@ function AddMemberSheet({ visible, full, onClose, onAdded }: { visible: boolean;
   const submit = async () => {
     if (name.trim().length < 2) return setError('Enter the member’s name');
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setError('Enter a valid email address');
-    if (password.length < 6) return setError('Set a temporary password (min 6 characters)');
+    const pwErr = validatePassword(password);
+    if (pwErr) return setError(pwErr);
     setError(undefined);
     setSaving(true);
     try {
@@ -227,7 +230,10 @@ function AddMemberSheet({ visible, full, onClose, onAdded }: { visible: boolean;
           textContentType="emailAddress"
         />
         <Field label="Role" icon={Briefcase} value={role} onChangeText={setRole} placeholder="e.g. Accountant" />
-        <Field label="Temporary password *" icon={Lock} value={password} onChangeText={setPassword} placeholder="Share this with them" secure autoComplete="password-new" />
+        <View style={{ gap: 10 }}>
+          <Field label="Temporary password *" icon={Lock} value={password} onChangeText={setPassword} placeholder="Min 8 — letters & numbers" secure autoComplete="password-new" />
+          <PasswordStrength password={password} />
+        </View>
         {error && (
           <Text variant="caption" tone="danger" weight="medium">
             {error}

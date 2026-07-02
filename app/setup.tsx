@@ -14,6 +14,8 @@ import { CURRENCIES, INDUSTRIES, PLANS, ANNUAL_DISCOUNT, currencyForCountry } fr
 import { computeBilling } from '@/data/billing';
 import { formatUSD } from '@/data/format';
 import { useKeyboardHeight } from '@/utils/useKeyboardHeight';
+import { validatePassword } from '@/utils/password';
+import { PasswordStrength } from '@/components/PasswordStrength';
 
 const STEP_TITLES = [
   { title: 'Company profile', sub: 'Tell us about your business' },
@@ -128,7 +130,8 @@ export default function Setup() {
     if (step === 3) {
       if (ownerName.trim().length < 2) return setErr('Enter your name');
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setErr('Enter a valid email address');
-      if (password.length < 4) return setErr('Password must be at least 4 characters');
+      const pwErr = validatePassword(password);
+      if (pwErr) return setErr(pwErr);
     }
     setErr(undefined);
     if (step < LAST_STEP) setStep((s) => s + 1);
@@ -359,7 +362,10 @@ export default function Setup() {
                   autoComplete="email"
                   textContentType="emailAddress"
                 />
-                <Field label="Password *" icon={Lock} value={password} onChangeText={setPassword} placeholder="••••••••" secure autoComplete="password-new" />
+                <View style={{ gap: 10 }}>
+                  <Field label="Password *" icon={Lock} value={password} onChangeText={setPassword} placeholder="Min 8 — letters & numbers" secure autoComplete="password-new" />
+                  <PasswordStrength password={password} />
+                </View>
               </View>
             </Reveal>
           )}

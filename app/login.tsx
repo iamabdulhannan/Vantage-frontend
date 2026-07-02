@@ -28,7 +28,7 @@ export default function Login() {
   const submit = async () => {
     const next: typeof errors = {};
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) next.email = 'Enter a valid email address';
-    if (password.length < 4) next.password = 'Password must be at least 4 characters';
+    if (!password) next.password = 'Enter your password';
     setErrors(next);
     setFormError(undefined);
     if (Object.keys(next).length) return;
