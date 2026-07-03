@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, TextInput, FlatList, Pressable } from 'react-native';
+import { View, TextInput, Pressable } from 'react-native';
 import { Check, ChevronDown, Search, type LucideIcon } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
+import { PressableScale } from './motion';
 import { Sheet } from './Sheet';
 import { Text } from './Text';
 
@@ -128,22 +129,28 @@ export function PickerSheet({
             />
           </View>
         )}
-        <FlatList
-          data={filtered}
-          keyExtractor={(o) => o.key}
-          style={{ maxHeight: 340 }}
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item, index }) => {
+        {/* Plain mapped list on purpose: the Sheet already scrolls, and nesting a
+            VirtualizedList inside its ScrollView breaks touch handling. The option
+            count is small (< 60), so virtualization buys nothing. */}
+        <View>
+          {filtered.length === 0 && (
+            <Text variant="bodySm" tone="subtle" center style={{ paddingVertical: 24 }}>
+              No matches
+            </Text>
+          )}
+          {filtered.map((item, index) => {
             const active = item.key === selectedKey;
             return (
-              <Pressable
+              <PressableScale
+                key={item.key}
                 onPress={() => {
                   onSelect(item);
                   onClose();
                 }}
                 nativeID={`pick-${item.key.replace(/[^a-zA-Z0-9]/g, '_')}`}
-                accessibilityRole="button"
-                style={({ pressed }) => ({
+                scaleTo={0.98}
+                accessibilityLabel={item.label}
+                style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   gap: 12,
@@ -151,23 +158,17 @@ export function PickerSheet({
                   paddingHorizontal: 6,
                   borderTopWidth: index === 0 ? 0 : 1,
                   borderTopColor: t.colors.divider,
-                  backgroundColor: pressed ? t.colors.surfaceAlt : 'transparent',
-                })}
+                }}
               >
                 {item.left && <Text style={{ fontSize: 20 }}>{item.left}</Text>}
                 <Text variant="body" weight={active ? 'semibold' : 'regular'} tone={active ? 'accent' : 'default'} style={{ flex: 1 }}>
                   {item.label}
                 </Text>
                 {active && <Check size={18} color={t.colors.accent} strokeWidth={2.6} />}
-              </Pressable>
+              </PressableScale>
             );
-          }}
-          ListEmptyComponent={
-            <Text variant="bodySm" tone="subtle" center style={{ paddingVertical: 24 }}>
-              No matches
-            </Text>
-          }
-        />
+          })}
+        </View>
       </View>
     </Sheet>
   );
