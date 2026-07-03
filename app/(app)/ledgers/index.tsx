@@ -65,7 +65,7 @@ export default function Ledgers() {
                   YOU'LL GET
                 </Text>
               </View>
-              <AnimatedNumber value={youllGet} compact size={22} weight="bold" color={t.colors.success} />
+              <AnimatedNumber value={youllGet} compact={false} size={20} weight="bold" color={t.colors.success} />
             </View>
             <View style={{ width: 1, backgroundColor: t.colors.border }} />
             <View style={{ flex: 1, padding: t.spacing.xl, gap: 8 }}>
@@ -75,7 +75,7 @@ export default function Ledgers() {
                   YOU'LL GIVE
                 </Text>
               </View>
-              <AnimatedNumber value={youllGive} compact size={22} weight="bold" color={t.colors.danger} />
+              <AnimatedNumber value={youllGive} compact={false} size={20} weight="bold" color={t.colors.danger} />
             </View>
           </View>
         </Card>
@@ -156,7 +156,7 @@ export default function Ledgers() {
                   </View>
                   <View style={{ alignItems: 'flex-end', gap: 2 }}>
                     <Text variant="bodySm" weight="bold" mono style={{ color }}>
-                      {formatCurrency(Math.abs(c.balance), { compact: true })}
+                      {formatCurrency(Math.abs(c.balance))}
                     </Text>
                     <Text variant="micro" weight="semibold" style={{ color, letterSpacing: 0.2 }}>
                       {label}

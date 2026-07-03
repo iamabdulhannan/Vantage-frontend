@@ -1,4 +1,4 @@
-// Active currency symbol — set once during company setup, read everywhere.
+// Active currency symbol - set once during company setup, read everywhere.
 let _symbol = 'Rs';
 
 export function setCurrencySymbol(symbol: string) {

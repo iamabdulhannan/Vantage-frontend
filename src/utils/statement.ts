@@ -20,12 +20,14 @@ export function buildStatementHtml(customer: Customer, opts: { companyName: stri
     customer.ledger
       .map((e) => {
         const gave = e.debit > 0;
+        const dir = e.balance === 0 ? 'Settled' : e.balance > 0 ? "You'll get" : "You'll give";
+        const dirColor = e.balance === 0 ? '#64748b' : e.balance > 0 ? '#0F9D58' : '#E11D48';
         return `<tr>
           <td>${formatDate(e.date)}</td>
           <td>${esc(e.memo)}</td>
-          <td class="r red">${gave ? formatCurrency(e.debit) : '—'}</td>
-          <td class="r green">${!gave ? formatCurrency(e.credit) : '—'}</td>
-          <td class="r bold">${formatCurrency(Math.abs(e.balance))}</td>
+          <td class="r red">${gave ? formatCurrency(e.debit) : '-'}</td>
+          <td class="r green">${!gave ? formatCurrency(e.credit) : '-'}</td>
+          <td class="r bold">${formatCurrency(Math.abs(e.balance))}<br/><span style="font-size:10px;font-weight:600;color:${dirColor};">${dir}</span></td>
         </tr>`;
       })
       .join('') || '<tr><td colspan="5" style="text-align:center;color:#8a8fb4;padding:28px;">No transactions yet</td></tr>';
@@ -93,7 +95,7 @@ export async function shareStatement(customer: Customer, opts: { companyName: st
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(uri, {
       mimeType: 'application/pdf',
-      dialogTitle: `${customer.name} — Statement`,
+      dialogTitle: `${customer.name} - Statement`,
       UTI: 'com.adobe.pdf',
     });
   }

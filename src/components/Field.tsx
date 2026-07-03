@@ -17,7 +17,7 @@ export function Field({ label, icon: Icon, error, secure, style, ...rest }: Prop
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(!!secure);
 
-  // Smoothly animate the focus ring instead of snapping — small touch that
+  // Smoothly animate the focus ring instead of snapping - small touch that
   // makes every form in the app feel polished.
   const focusSV = useSharedValue(0);
   useEffect(() => {

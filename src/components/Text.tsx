@@ -38,7 +38,7 @@ export function Text({
     danger: t.colors.danger,
     warning: t.colors.warning,
     brandText: t.colors.brandText,
-    accentText: t.colors.accentText, // white — for labels on gradient/accent buttons
+    accentText: t.colors.accentText, // white - for labels on gradient/accent buttons
   };
 
   const monoMap: Record<Weight, string> = {

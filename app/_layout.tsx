@@ -60,7 +60,7 @@ function Gate() {
   );
 }
 
-/** Branded splash — shown while fonts load and the session restores. */
+/** Branded splash - shown while fonts load and the session restores. */
 function ThemedLoader() {
   const pulse = useSharedValue(1);
   useEffect(() => {
@@ -82,7 +82,7 @@ function ThemedLoader() {
       />
       <Animated.View style={[{ alignItems: 'center', gap: 16 }, logoStyle]}>
         <LogoMark size={72} />
-        {/* System font on purpose — this renders before custom fonts load. */}
+        {/* System font on purpose - this renders before custom fonts load. */}
         <RNText style={{ color: '#FFFFFF', fontSize: 24, fontWeight: '700', letterSpacing: -0.5 }}>
           Vantage
         </RNText>

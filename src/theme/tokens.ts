@@ -1,5 +1,5 @@
 /**
- * Vantage design tokens — "Trust & Authority" finance theme.
+ * Vantage design tokens - "Trust & Authority" finance theme.
  * Professional navy + electric blue, full light & dark support.
  * Money/data values use Fira Code (tabular figures); UI uses Fira Sans.
  */

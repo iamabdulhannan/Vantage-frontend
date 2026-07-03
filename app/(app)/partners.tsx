@@ -71,12 +71,12 @@ export default function Partners() {
             </View>
             <Text variant="caption" tone={overAllocated ? 'danger' : 'subtle'} weight={overAllocated ? 'semibold' : 'regular'}>
               {overAllocated
-                ? `⚠ Shares add up to ${totalShare}% — over 100%. Review the split.`
+                ? `⚠ Shares add up to ${totalShare}% - over 100%. Review the split.`
                 : `${totalShare}% of revenue distributed across ${partners.length} ${partners.length === 1 ? 'partner' : 'partners'}`}
             </Text>
           </View>
 
-          {/* Payout math — computed, never typed in */}
+          {/* Payout math - computed, never typed in */}
           <View style={{ height: 1, backgroundColor: t.colors.divider }} />
           <View style={{ flexDirection: 'row' }}>
             <View style={{ flex: 1, gap: 3 }}>
@@ -110,7 +110,7 @@ export default function Partners() {
               No partners yet
             </Text>
             <Text variant="bodySm" tone="muted" center style={{ maxWidth: 260 }}>
-              Add a partner with their revenue share — Vantage computes their exact payout for you.
+              Add a partner with their revenue share - Vantage computes their exact payout for you.
             </Text>
           </Card>
         </Reveal>

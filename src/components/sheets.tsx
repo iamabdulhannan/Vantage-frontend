@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Building2, User, Tag, Hash, FileText, Briefcase, Users2, MapPin, Percent, TrendingUp, Trash2, Phone, Mail } from 'lucide-react-native';
+import { Building2, User, Tag, Hash, FileText, Briefcase, Users2, MapPin, Percent, TrendingUp, Trash2, Phone, Mail, BellRing } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Sheet } from './Sheet';
 import { Field } from './Field';
@@ -10,8 +10,9 @@ import { Avatar } from './Avatar';
 import { Badge } from './Badge';
 import { PressableScale } from './motion';
 import { useStore } from '@/data/store';
+import { scheduleReminderNotifications } from '@/utils/reminders';
 import { Employee, LedgerEntry, ExpenseSlice, Partner } from '@/data/mock';
-import { currencySymbol, formatCurrency } from '@/data/format';
+import { currencySymbol, formatCurrency, formatDate } from '@/data/format';
 
 function parseAmount(s: string): number {
   const n = parseFloat(s.replace(/[^0-9.]/g, ''));
@@ -271,8 +272,8 @@ export function AddEntrySheet({
           error={error}
           autoFocus
         />
-        <Field label="Details (items, bill no, reason)" icon={FileText} value={memo} onChangeText={setMemo} placeholder={isGave ? 'e.g. 10 cartons supplied — Bill #221' : 'e.g. Cash payment received'} />
-        <ColorButton label={isGave ? 'Save — You Gave' : 'Save — You Got'} color={color} onPress={submit} nativeID="save-add-entry" />
+        <Field label="Details (items, bill no, reason)" icon={FileText} value={memo} onChangeText={setMemo} placeholder={isGave ? 'e.g. 10 cartons supplied - Bill #221' : 'e.g. Cash payment received'} />
+        <ColorButton label={isGave ? 'Save - You Gave' : 'Save - You Got'} color={color} onPress={submit} nativeID="save-add-entry" />
       </View>
     </Sheet>
   );
@@ -362,7 +363,7 @@ export function EditEntrySheet({
           {pill('got', 'You got', t.colors.success)}
         </View>
         <Field label={`Amount (${currencySymbol()})`} icon={Hash} value={amount} onChangeText={setAmount} placeholder="0" keyboardType="numeric" error={error} />
-        <Field label="Details (items, bill no, reason)" icon={FileText} value={memo} onChangeText={setMemo} placeholder="e.g. 10 cartons supplied — Bill #221" />
+        <Field label="Details (items, bill no, reason)" icon={FileText} value={memo} onChangeText={setMemo} placeholder="e.g. 10 cartons supplied - Bill #221" />
         <Button label="Save changes" onPress={save} nativeID="save-entry" />
         <Button
           label={confirmDelete ? 'Tap again to confirm delete' : 'Delete entry'}
@@ -844,7 +845,7 @@ export function EmployeeSheet({ visible, onClose, employee }: { visible: boolean
 
         <View style={{ height: 1, backgroundColor: t.colors.divider }} />
 
-        {/* Edit profile — name / role / dept / salary (full set, can go down) */}
+        {/* Edit profile - name / role / dept / salary (full set, can go down) */}
         <View style={{ gap: 12 }}>
           <Field label="Full name" icon={User} value={name} onChangeText={setName} placeholder="e.g. Sara Ahmed" />
           <Field label="Role" icon={Briefcase} value={role} onChangeText={setRole} placeholder="e.g. Backend Engineer" />
@@ -880,6 +881,130 @@ export function EmployeeSheet({ visible, onClose, employee }: { visible: boolean
           onPress={remove}
           nativeID="remove-employee"
         />
+      </View>
+    </Sheet>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+
+const REMINDER_DAYS = [
+  { label: 'Tomorrow', days: 1 },
+  { label: 'In 3 days', days: 3 },
+  { label: 'Next week', days: 7 },
+  { label: 'In 2 weeks', days: 14 },
+];
+
+const REMINDER_TIMES = [
+  { label: 'Morning', hour: 10 },
+  { label: 'Afternoon', hour: 15 },
+  { label: 'Evening', hour: 19 },
+];
+
+/** "This customer will pay on <date>" - schedules local notifications too. */
+export function ReminderSheet({
+  visible,
+  onClose,
+  customerId,
+  customerName,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  customerId: string;
+  customerName: string;
+}) {
+  const t = useTheme();
+  const { addReminder } = useStore();
+  const [days, setDays] = useState(1);
+  const [customDays, setCustomDays] = useState('');
+  const [hour, setHour] = useState(10);
+  const [note, setNote] = useState('');
+
+  useEffect(() => {
+    if (visible) {
+      setDays(1);
+      setCustomDays('');
+      setHour(10);
+      setNote('');
+    }
+  }, [visible]);
+
+  const effectiveDays = customDays.trim() ? Math.max(1, Math.round(parseAmount(customDays))) : days;
+  const due = new Date();
+  due.setDate(due.getDate() + effectiveDays);
+  due.setHours(hour, 0, 0, 0);
+
+  const save = () => {
+    const iso = due.toISOString();
+    addReminder(customerId, iso, note.trim() || undefined);
+    void scheduleReminderNotifications(customerName, iso);
+    onClose();
+  };
+
+  const pill = (active: boolean, label: string, onPress: () => void, key: string) => (
+    <PressableScale
+      key={key}
+      onPress={onPress}
+      scaleTo={0.96}
+      style={{
+        paddingHorizontal: 13,
+        paddingVertical: 9,
+        borderRadius: 999,
+        backgroundColor: active ? t.colors.accentSoft : t.colors.surfaceAlt,
+        borderWidth: 1,
+        borderColor: active ? t.colors.accent : 'transparent',
+      }}
+    >
+      <Text variant="bodySm" weight={active ? 'semibold' : 'regular'} tone={active ? 'accent' : 'muted'}>
+        {label}
+      </Text>
+    </PressableScale>
+  );
+
+  return (
+    <Sheet visible={visible} onClose={onClose} title="Set payment reminder" subtitle={`When will ${customerName} pay?`}>
+      <View style={{ gap: 16 }}>
+        <View style={{ gap: 8 }}>
+          <Text variant="bodySm" weight="medium" tone="muted">
+            Day
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {REMINDER_DAYS.map((d) =>
+              pill(!customDays.trim() && days === d.days, d.label, () => {
+                setDays(d.days);
+                setCustomDays('');
+              }, `d-${d.days}`),
+            )}
+          </View>
+          <Field
+            label="Or after how many days?"
+            icon={Hash}
+            value={customDays}
+            onChangeText={setCustomDays}
+            placeholder="e.g. 10"
+            keyboardType="numeric"
+          />
+        </View>
+
+        <View style={{ gap: 8 }}>
+          <Text variant="bodySm" weight="medium" tone="muted">
+            Time
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {REMINDER_TIMES.map((tm) => pill(hour === tm.hour, `${tm.label} ${tm.hour > 12 ? tm.hour - 12 : tm.hour}${tm.hour >= 12 ? 'pm' : 'am'}`, () => setHour(tm.hour), `t-${tm.hour}`))}
+          </View>
+        </View>
+
+        <Field label="Note (optional)" icon={FileText} value={note} onChangeText={setNote} placeholder="e.g. Promised after Eid" />
+
+        <View style={{ backgroundColor: t.colors.accentSoft, borderRadius: t.radius.md, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <BellRing size={16} color={t.colors.accent} strokeWidth={2.2} />
+          <Text variant="caption" tone="accent" weight="medium" style={{ flex: 1 }}>
+            Due {formatDate(due.toISOString())} around {hour > 12 ? hour - 12 : hour}{hour >= 12 ? 'pm' : 'am'}. You will be notified a day before and on the day.
+          </Text>
+        </View>
+
+        <Button label="Save reminder" icon={BellRing} onPress={save} nativeID="save-reminder" />
       </View>
     </Sheet>
   );

@@ -16,7 +16,7 @@ import Animated, {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 /**
- * Reveal — staggered entrance. Pass `index` for list stagger.
+ * Reveal - staggered entrance. Pass `index` for list stagger.
  * Runs on the UI thread via Reanimated layout animations.
  */
 export function Reveal({
@@ -44,7 +44,7 @@ export function Reveal({
   );
 }
 
-/** PressableScale — springy press feedback on the UI thread. */
+/** PressableScale - springy press feedback on the UI thread. */
 export function PressableScale({
   children,
   onPress,
@@ -72,7 +72,7 @@ export function PressableScale({
   );
 }
 
-/** PulseDot — a live status dot with an expanding, fading ring. */
+/** PulseDot - a live status dot with an expanding, fading ring. */
 export function PulseDot({ color, size = 8 }: { color: string; size?: number }) {
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0.55);
@@ -98,7 +98,7 @@ export function PulseDot({ color, size = 8 }: { color: string; size?: number }) 
   );
 }
 
-/** ProgressBar — animated fill (0..1). */
+/** ProgressBar - animated fill (0..1). */
 export function ProgressBar({
   progress,
   color,

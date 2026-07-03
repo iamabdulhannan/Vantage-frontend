@@ -1,5 +1,5 @@
 /**
- * Salary withholding tax — progressive government slabs, mirrored from the
+ * Salary withholding tax - progressive government slabs, mirrored from the
  * API implementation (vantage-backend/src/common/salary-tax.ts). Keep in sync.
  *
  * Pakistan: FBR salaried slabs FY 2025-26, applied to annual income;

@@ -53,13 +53,13 @@ interface AuthContextValue {
   user: SessionUser | null;
   company: CompanyProfile | null;
   signedIn: boolean;
-  /** Reactive JWT — non-null only for a live API session; drives data hydration. */
+  /** Reactive JWT - non-null only for a live API session; drives data hydration. */
   token: string | null;
   /** True while restoring a persisted session on launch (show a splash, don't redirect). */
   hydrating: boolean;
   /** True when the active session came from the live API (not the local fallback). */
   online: boolean;
-  /** True when the last session ended because the token expired — login shows a notice. */
+  /** True when the last session ended because the token expired - login shows a notice. */
   sessionExpired: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     (async () => {
       const s = await loadSession();
-      // Only restore a real (DB-backed) session — a token is required.
+      // Only restore a real (DB-backed) session - a token is required.
       if (!cancelled && s?.user && s.token) {
         setToken(s.token);
         setTokenState(s.token);
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setCompany(s.company);
         if (s.company) setCurrencySymbol(s.company.currencySymbol);
         setOnline(true);
-        // Validate the restored token immediately — if it expired while the
+        // Validate the restored token immediately - if it expired while the
         // app was closed, the 401 handler signs out with a notice instead of
         // letting screens render stale data.
         api.auth.me().catch(() => {});

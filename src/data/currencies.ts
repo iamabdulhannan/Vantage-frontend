@@ -72,7 +72,7 @@ export interface Plan {
   features: string[];
 }
 
-// Billing is for the Vantage subscription itself — always priced in USD.
+// Billing is for the Vantage subscription itself - always priced in USD.
 // No free tier; the cheapest seat is $10/mo.
 export const PLANS: Plan[] = [
   {
@@ -102,4 +102,4 @@ export const PLANS: Plan[] = [
 ];
 
 export const ANNUAL_DISCOUNT = 0.2; // 20% off when billed yearly
-export const BILLING_MIN = 10; // USD floor — never bill less than this
+export const BILLING_MIN = 10; // USD floor - never bill less than this

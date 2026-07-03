@@ -1,5 +1,5 @@
 /**
- * One password policy for the whole product — mirrored by the API
+ * One password policy for the whole product - mirrored by the API
  * (auth.dto.ts / team.module.ts). Keep the two in sync.
  */
 export const PASSWORD_MIN = 8;
@@ -13,12 +13,12 @@ export function validatePassword(pw: string): string | null {
 }
 
 export interface Strength {
-  /** 0–4 */
+  /** 0-4 */
   score: number;
   label: 'Too short' | 'Weak' | 'Fair' | 'Good' | 'Strong';
 }
 
-/** Rough strength score for the meter — guidance, not a gate. */
+/** Rough strength score for the meter - guidance, not a gate. */
 export function passwordStrength(pw: string): Strength {
   if (pw.length === 0) return { score: 0, label: 'Too short' };
   let score = 0;

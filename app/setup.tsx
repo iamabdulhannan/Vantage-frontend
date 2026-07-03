@@ -10,7 +10,9 @@ import { Field } from '@/components/Field';
 import { Button } from '@/components/Button';
 import { LogoMark } from '@/components/Logo';
 import { PressableScale, Reveal } from '@/components/motion';
-import { CURRENCIES, INDUSTRIES, PLANS, ANNUAL_DISCOUNT, currencyForCountry } from '@/data/currencies';
+import { CURRENCIES, INDUSTRIES, PLANS, ANNUAL_DISCOUNT } from '@/data/currencies';
+import { COUNTRIES, OWNER_ROLES } from '@/data/countries';
+import { PickerSheet, SelectField } from '@/components/PickerSheet';
 import { computeBilling } from '@/data/billing';
 import { formatUSD } from '@/data/format';
 import { useKeyboardHeight } from '@/utils/useKeyboardHeight';
@@ -27,7 +29,7 @@ const STEP_TITLES = [
 
 const LAST_STEP = STEP_TITLES.length - 1;
 
-const TEAM_SIZES = ['Just me', '2–10', '11–50', '50+'];
+const TEAM_SIZES = ['Just me', '2-10', '11-50', '50+'];
 
 function previewAmount(symbol: string) {
   const sep = symbol.length <= 1 ? '' : ' ';
@@ -45,26 +47,22 @@ export default function Setup() {
   const [err, setErr] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
 
-  // Step 0 — company
+  // Step 0 - company
   const [companyName, setCompanyName] = useState('');
   const [industry, setIndustry] = useState(INDUSTRIES[0]);
   const [country, setCountry] = useState('');
-  const [autoCurrency, setAutoCurrency] = useState<string | null>(null);
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [roleOpen, setRoleOpen] = useState(false);
 
-  // Typing "Pakistan" / "UAE" / "London"… auto-selects the matching currency,
-  // so most founders never have to think about the currency step.
-  const onCountryChange = (text: string) => {
-    setCountry(text);
-    const code = currencyForCountry(text);
-    if (code) {
-      setCurrencyCode(code);
-      setAutoCurrency(code);
-    } else {
-      setAutoCurrency(null);
-    }
+  // Picking a country silently selects its currency; the founder can still
+  // change it on the currency step.
+  const onPickCountry = (name: string) => {
+    setCountry(name);
+    const c = COUNTRIES.find((x) => x.name === name);
+    if (c && CURRENCIES.some((cur) => cur.code === c.currency)) setCurrencyCode(c.currency);
   };
 
-  // Step 1 — currency + opening financials
+  // Step 1 - currency + opening financials
   const [currencyCode, setCurrencyCode] = useState('PKR');
   const [capital, setCapital] = useState('');
   const [revenue, setRevenue] = useState('');
@@ -73,13 +71,13 @@ export default function Setup() {
     return Number.isFinite(n) ? n : 0;
   };
 
-  // Step 2 — account
+  // Step 2 - account
   const [ownerName, setOwnerName] = useState('');
   const [role, setRole] = useState('Founder & CEO');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // Step 3 — team & billing
+  // Step 3 - team & billing
   const [teamSize, setTeamSize] = useState(TEAM_SIZES[1]);
   const [seats, setSeats] = useState(5);
   const [plan, setPlan] = useState<'starter' | 'growth' | 'scale'>('growth');
@@ -96,7 +94,7 @@ export default function Setup() {
   };
 
   const finish = async () => {
-    // Creates the company + owner via the API and signs the owner in (DB-only — no local fallback).
+    // Creates the company + owner via the API and signs the owner in (DB-only - no local fallback).
     setSubmitting(true);
     try {
       await register({
@@ -126,7 +124,7 @@ export default function Setup() {
   const next = () => {
     if (step === 0 && companyName.trim().length < 2) return setErr('Enter your company name');
     if (step === 2 && toNum(capital) <= 0)
-      return setErr('Enter your working capital — a company can’t run on 0. Even a rough figure works.');
+      return setErr('Enter your working capital - a company can’t run on 0. Even a rough figure works.');
     if (step === 3) {
       if (ownerName.trim().length < 2) return setErr('Enter your name');
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) return setErr('Enter a valid email address');
@@ -187,7 +185,7 @@ export default function Setup() {
             </View>
           </Reveal>
 
-          {/* STEP 0 — COMPANY */}
+          {/* STEP 0 - COMPANY */}
           {step === 0 && (
             <Reveal index={1} key="s0">
               <View style={{ gap: 18 }}>
@@ -221,22 +219,19 @@ export default function Setup() {
                     })}
                   </View>
                 </View>
-                <View style={{ gap: 8 }}>
-                  <Field label="Country / region" icon={Globe} value={country} onChangeText={onCountryChange} placeholder="e.g. Pakistan" />
-                  {autoCurrency && (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: t.colors.successSoft, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 }}>
-                      <Check size={13} color={t.colors.success} strokeWidth={2.8} />
-                      <Text variant="caption" weight="semibold" style={{ color: t.colors.success }}>
-                        Currency set to {autoCurrency} — change it on the next step if needed
-                      </Text>
-                    </View>
-                  )}
-                </View>
+                <SelectField
+                  label="Country / region"
+                  icon={Globe}
+                  value={country}
+                  placeholder="Select your country"
+                  onPress={() => setCountryOpen(true)}
+                  nativeID="pick-country"
+                />
               </View>
             </Reveal>
           )}
 
-          {/* STEP 1 — CURRENCY */}
+          {/* STEP 1 - CURRENCY */}
           {step === 1 && (
             <Reveal index={1} key="s1">
               <View style={{ gap: 16 }}>
@@ -290,7 +285,7 @@ export default function Setup() {
             </Reveal>
           )}
 
-          {/* STEP 2 — OPENING FINANCIALS */}
+          {/* STEP 2 - OPENING FINANCIALS */}
           {step === 2 && (
             <Reveal index={1} key="s-fin">
               <View style={{ gap: 16 }}>
@@ -338,19 +333,26 @@ export default function Setup() {
                   keyboardType="numeric"
                 />
                 <Text variant="caption" tone="subtle">
-                  These power your CEO dashboard — Working Capital, Total Revenue, Net Profit and cash
+                  These power your CEO dashboard - Working Capital, Total Revenue, Net Profit and cash
                   runway. Working capital is required; you can fine-tune both anytime from Settings → Company.
                 </Text>
               </View>
             </Reveal>
           )}
 
-          {/* STEP 3 — ACCOUNT */}
+          {/* STEP 3 - ACCOUNT */}
           {step === 3 && (
             <Reveal index={1} key="s-acct">
               <View style={{ gap: 16 }}>
                 <Field label="Your full name *" icon={User} value={ownerName} onChangeText={setOwnerName} placeholder="e.g. Alex Mercer" autoFocus />
-                <Field label="Your role" icon={Briefcase} value={role} onChangeText={setRole} placeholder="e.g. Founder & CEO" />
+                <SelectField
+                  label="Your role"
+                  icon={Briefcase}
+                  value={role}
+                  placeholder="Select your role"
+                  onPress={() => setRoleOpen(true)}
+                  nativeID="pick-role"
+                />
                 <Field
                   label="Work email *"
                   icon={Mail}
@@ -363,14 +365,14 @@ export default function Setup() {
                   textContentType="emailAddress"
                 />
                 <View style={{ gap: 10 }}>
-                  <Field label="Password *" icon={Lock} value={password} onChangeText={setPassword} placeholder="Min 8 — letters & numbers" secure autoComplete="password-new" />
+                  <Field label="Password *" icon={Lock} value={password} onChangeText={setPassword} placeholder="Min 8 - letters & numbers" secure autoComplete="password-new" />
                   <PasswordStrength password={password} />
                 </View>
               </View>
             </Reveal>
           )}
 
-          {/* STEP 4 — TEAM */}
+          {/* STEP 4 - TEAM */}
           {step === 4 && (
             <Reveal index={1} key="s-team">
               <View style={{ gap: 20 }}>
@@ -570,6 +572,24 @@ export default function Setup() {
           />
         </View>
       </View>
+
+      <PickerSheet
+        visible={countryOpen}
+        onClose={() => setCountryOpen(false)}
+        title="Select country"
+        options={COUNTRIES.map((c) => ({ key: c.name, label: c.name, left: c.flag }))}
+        selectedKey={country || undefined}
+        onSelect={(o) => onPickCountry(o.key)}
+      />
+      <PickerSheet
+        visible={roleOpen}
+        onClose={() => setRoleOpen(false)}
+        title="Select your role"
+        options={OWNER_ROLES.map((r) => ({ key: r, label: r }))}
+        selectedKey={role}
+        onSelect={(o) => setRole(o.key)}
+        searchable={false}
+      />
     </View>
   );
 }

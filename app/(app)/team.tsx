@@ -57,9 +57,9 @@ export default function Team() {
     }
     try {
       await api.team.remove(id);
-      toast.success('Member removed — their seat is free again.');
+      toast.success('Member removed - their seat is free again.');
     } catch (e: any) {
-      toast.error(e?.message || 'Could not remove the member — try again.');
+      toast.error(e?.message || 'Could not remove the member - try again.');
     }
     setConfirmId(null);
     load();
@@ -114,7 +114,7 @@ export default function Team() {
             </View>
             <Text variant="caption" tone={full ? 'warning' : 'subtle'}>
               {full
-                ? 'All seats are in use — add more seats in Billing to invite another member.'
+                ? 'All seats are in use - add more seats in Billing to invite another member.'
                 : `${seats.available} seat${seats.available === 1 ? '' : 's'} available`}
             </Text>
           </Card>
@@ -233,7 +233,7 @@ function AddMemberSheet({ visible, full, onClose, onAdded }: { visible: boolean;
         />
         <Field label="Role" icon={Briefcase} value={role} onChangeText={setRole} placeholder="e.g. Accountant" />
         <View style={{ gap: 10 }}>
-          <Field label="Temporary password *" icon={Lock} value={password} onChangeText={setPassword} placeholder="Min 8 — letters & numbers" secure autoComplete="password-new" />
+          <Field label="Temporary password *" icon={Lock} value={password} onChangeText={setPassword} placeholder="Min 8 - letters & numbers" secure autoComplete="password-new" />
           <PasswordStrength password={password} />
         </View>
         {error && (

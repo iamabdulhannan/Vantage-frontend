@@ -8,6 +8,7 @@ import {
   EXPENSE_COLORS,
   Customer,
   LedgerEntry,
+  Reminder,
   ExpenseSlice,
   Employee,
   Partner,
@@ -38,6 +39,13 @@ function mapApiCustomer(c: any): Customer {
     status: 'settled',
     lastActivity: c.lastActivity ? String(c.lastActivity).slice(0, 10) : new Date().toISOString().slice(0, 10),
     ledger,
+    reminders: (c.reminders ?? []).map((r: any) => ({
+      id: r.id,
+      dueAt: String(r.dueAt),
+      note: r.note ?? undefined,
+      status: r.status,
+    })),
+    reliability: c.reliability,
   });
 }
 
@@ -84,7 +92,7 @@ interface StoreValue {
   employees: Employee[];
   partners: Partner[];
   activity: ActivityItem[];
-  /** Payments received via the khata book this session — feeds live revenue. */
+  /** Payments received via the khata book this session - feeds live revenue. */
   receipts: number;
   addCustomer: (input: {
     name: string;
@@ -103,13 +111,17 @@ interface StoreValue {
   updateEntry: (customerId: string, entryId: string, input: { kind?: 'gave' | 'got'; amount?: number; memo?: string }) => void;
   /** Delete a ledger entry. */
   removeEntry: (customerId: string, entryId: string) => void;
+  /** Set a collection promise ("will pay on <date>"); reschedules any open one. */
+  addReminder: (customerId: string, dueAtISO: string, note?: string) => void;
+  /** Mark a promise kept / missed. */
+  setReminderStatus: (customerId: string, reminderId: string, status: 'kept' | 'missed') => void;
   addExpense: (input: { label: string; value: number; note?: string }) => void;
   /** Edit an expense (category / amount / note). */
   updateExpense: (id: string, patch: { label?: string; value?: number; note?: string }) => void;
   /** Delete an expense record. */
   removeExpense: (id: string) => void;
   addEmployee: (input: { name: string; role: string; dept: string; salary: number }) => void;
-  /** Edit an employee's profile (name / role / dept / salary — full set). */
+  /** Edit an employee's profile (name / role / dept / salary - full set). */
   updateEmployee: (id: string, patch: { name?: string; role?: string; dept?: string; salary?: number }) => void;
   /** Permanently remove an employee from payroll (super-admin action). */
   removeEmployee: (id: string) => void;
@@ -137,7 +149,7 @@ interface StoreValue {
 const StoreContext = createContext<StoreValue | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  // With a live API the app must NEVER show demo data — an expired session or
+  // With a live API the app must NEVER show demo data - an expired session or
   // failed refresh should show empty state, not fake customers and revenue.
   const live = isApiEnabled();
   const [customers, setCustomers] = useState<Customer[]>(() => (live ? [] : seedCustomers.map((c) => recalc(c))));
@@ -212,7 +224,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           .then(() => refresh())
           .catch((e) => {
             console.warn('[store] mutation failed to persist', e);
-            toast.error(e?.message || 'Could not save your change — check your connection and try again.');
+            toast.error(e?.message || 'Could not save your change - check your connection and try again.');
             // Re-pull so the optimistic UI rolls back to the server's truth.
             refresh();
           });
@@ -271,7 +283,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           .then(() => refresh())
           .catch((e) => {
             console.warn('[store] addCustomer failed to persist', e);
-            toast.error(e?.message || 'Could not save the customer — check your connection and try again.');
+            toast.error(e?.message || 'Could not save the customer - check your connection and try again.');
             refresh();
           });
       }
@@ -336,7 +348,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           return recalc({ ...c, lastActivity: todayISO(), ledger: [...c.ledger, entry] });
         })
       );
-      // A "got" entry is a payment received — count it toward live revenue.
+      // A "got" entry is a payment received - count it toward live revenue.
       if (!gave) setReceipts((r) => r + input.amount);
       syncThenRefresh(() => api.customers.addEntry(customerId, { kind: input.kind, amount: input.amount, memo: input.memo }));
       logActivity({
@@ -381,6 +393,41 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     );
     syncThenRefresh(() => api.customers.removeEntry(customerId, entryId));
   }, [syncThenRefresh]);
+
+  const addReminder = useCallback(
+    (customerId: string, dueAtISO: string, note?: string) => {
+      const reminder: Reminder = { id: `r${Date.now()}`, dueAt: dueAtISO, note, status: 'pending' };
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c.id !== customerId
+            ? c
+            : {
+                ...c,
+                reminders: [
+                  reminder,
+                  ...(c.reminders ?? []).map((r) => (r.status === 'pending' ? { ...r, status: 'rescheduled' as const } : r)),
+                ],
+              },
+        ),
+      );
+      syncThenRefresh(() => api.customers.addReminder(customerId, { dueAt: dueAtISO, note }));
+    },
+    [syncThenRefresh],
+  );
+
+  const setReminderStatus = useCallback(
+    (customerId: string, reminderId: string, status: 'kept' | 'missed') => {
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c.id !== customerId
+            ? c
+            : { ...c, reminders: (c.reminders ?? []).map((r) => (r.id === reminderId ? { ...r, status } : r)) },
+        ),
+      );
+      syncThenRefresh(() => api.customers.updateReminder(customerId, reminderId, { status }));
+    },
+    [syncThenRefresh],
+  );
 
   const addExpense = useCallback(
     (input: { label: string; value: number; note?: string }) => {
@@ -572,6 +619,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       addEntry,
       updateEntry,
       removeEntry,
+      addReminder,
+      setReminderStatus,
       addExpense,
       updateExpense,
       removeExpense,
@@ -598,6 +647,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       addEntry,
       updateEntry,
       removeEntry,
+      addReminder,
+      setReminderStatus,
       addExpense,
       updateExpense,
       removeExpense,

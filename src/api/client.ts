@@ -18,7 +18,7 @@ export function isApiEnabled() {
 }
 
 // Called when any authenticated request comes back 401 (expired/revoked JWT).
-// AuthContext registers a handler that signs the user out with a message —
+// AuthContext registers a handler that signs the user out with a message -
 // without this, an expired session silently failed and screens fell back to
 // stale or fake data.
 let onUnauthorized: (() => void) | null = null;
@@ -47,7 +47,7 @@ async function request<T = any>(
     const data = text ? JSON.parse(text) : null;
     if (!res.ok) {
       if (res.status === 401 && options.auth !== false && token) {
-        // Token no longer valid — force a clean sign-out.
+        // Token no longer valid - force a clean sign-out.
         onUnauthorized?.();
       }
       const msg = data && (Array.isArray(data.message) ? data.message.join(', ') : data.message || data.error);
@@ -79,6 +79,10 @@ export const api = {
       request(`/customers/${id}/entries/${entryId}`, { method: 'PATCH', body }),
     removeEntry: (id: string, entryId: string) =>
       request(`/customers/${id}/entries/${entryId}`, { method: 'DELETE' }),
+    addReminder: (id: string, body: { dueAt: string; note?: string }) =>
+      request(`/customers/${id}/reminders`, { method: 'POST', body }),
+    updateReminder: (id: string, reminderId: string, body: { status: 'kept' | 'missed' | 'rescheduled' | 'pending' }) =>
+      request(`/customers/${id}/reminders/${reminderId}`, { method: 'PATCH', body }),
   },
   expenses: {
     list: () => request('/expenses'),

@@ -40,7 +40,7 @@ export default function CompanyProfileScreen() {
       return;
     }
     if (toNum(capital) <= 0) {
-      setError('Working capital can’t be 0 — enter your real cash position.');
+      setError('Working capital can’t be 0 - enter your real cash position.');
       return;
     }
     setError(undefined);
@@ -188,7 +188,7 @@ export default function CompanyProfileScreen() {
             keyboardType="numeric"
           />
           <Text variant="caption" tone="subtle">
-            These drive your dashboard — Working Capital, Total Revenue, Net Profit and cash runway.
+            These drive your dashboard - Working Capital, Total Revenue, Net Profit and cash runway.
           </Text>
         </Card>
       </Reveal>

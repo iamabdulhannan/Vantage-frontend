@@ -15,6 +15,7 @@ import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, PressableScale, ProgressBar } from '@/components/motion';
 import { ConnectionBadge } from '@/components/ConnectionBadge';
 import { AddExpenseSheet } from '@/components/sheets';
+import { TourOverlay } from '@/components/TourOverlay';
 import { useStore } from '@/data/store';
 import { useAuth } from '@/auth/AuthContext';
 import { useCompany } from '@/data/company';
@@ -22,7 +23,7 @@ import { api, isApiEnabled } from '@/api/client';
 import { kpis, currentUser, computePayroll } from '@/data/mock';
 import { formatCurrency, relativeDate } from '@/data/format';
 
-// 12 zero months with real labels — shown until the live aggregate arrives.
+// 12 zero months with real labels - shown until the live aggregate arrives.
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const EMPTY_SERIES = Array.from({ length: 12 }, (_, i) => {
   const d = new Date();
@@ -89,7 +90,7 @@ export default function Dashboard() {
   );
 
   // Real values only: before the aggregate arrives (or if it fails) we show
-  // store-derived figures — never the demo numbers from mock.ts. kpis[] is
+  // store-derived figures - never the demo numbers from mock.ts. kpis[] is
   // used purely for labels/intents; mock deltas and sparklines are always
   // stripped so fabricated growth can never render.
   const localExpense = expenses.reduce((s, d) => s + d.value, 0);
@@ -359,6 +360,7 @@ export default function Dashboard() {
       </Reveal>
 
       <AddExpenseSheet visible={expenseOpen} onClose={() => setExpenseOpen(false)} />
+      <TourOverlay />
     </Screen>
   );
 }

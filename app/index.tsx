@@ -15,7 +15,7 @@ const FEATURES: { icon: LucideIcon; tint: string; title: string; sub: string }[]
     icon: BookOpen,
     tint: '#22D3EE',
     title: 'Customer khata',
-    sub: 'You gave, you got — balances work themselves out.',
+    sub: 'You gave, you got - balances work themselves out.',
   },
   {
     icon: LayoutDashboard,
@@ -80,13 +80,13 @@ export default function Welcome() {
 
         <View style={{ flex: 1 }} />
 
-        {/* Hero — one idea, no bulk */}
+        {/* Hero - one idea, no bulk */}
         <Animated.View entering={FadeInDown.delay(100).springify().damping(16)} style={{ gap: 14 }}>
           <Text weight="bold" style={{ color: '#FFFFFF', fontSize: 34, lineHeight: 41, letterSpacing: -1 }}>
             The simple way to{'\n'}run your business.
           </Text>
           <Text variant="body" style={{ color: 'rgba(235,238,255,0.68)', lineHeight: 23, maxWidth: 310 }}>
-            Khata, profit, payroll and partner splits — one clean app, live from anywhere.
+            Khata, profit, payroll and partner splits - one clean app, live from anywhere.
           </Text>
         </Animated.View>
 

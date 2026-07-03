@@ -14,7 +14,7 @@ export interface BillingBreakdown {
   annualSavings: number; // saved vs paying monthly for a year
 }
 
-/** Real-time billing math. Pure function — call it anywhere the inputs change. */
+/** Real-time billing math. Pure function - call it anywhere the inputs change. */
 export function computeBilling(planKey: PlanKey, seatsInput: number, cycle: BillingCycle): BillingBreakdown {
   const plan = PLANS.find((p) => p.key === planKey) ?? PLANS[0];
   const seats = Math.max(seatsInput, plan.minSeats);

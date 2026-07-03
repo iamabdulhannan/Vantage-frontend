@@ -71,7 +71,7 @@ export default function Login() {
         </Text>
       </LinearGradient>
 
-      {/* Keyboard-height lift — reliable on iOS and Android edge-to-edge. */}
+      {/* Keyboard-height lift - reliable on iOS and Android edge-to-edge. */}
       <View style={{ flex: 1, paddingBottom: kb }}>
         <ScrollView
           contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 24, gap: 18 }}

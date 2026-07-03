@@ -16,7 +16,7 @@ export function LogoMark({ size = 44, radius }: { size?: number; radius?: number
       style={{ width: size, height: size, borderRadius: r, alignItems: 'center', justifyContent: 'center' }}
     >
       <Svg width={size * 0.62} height={size * 0.62} viewBox="0 0 24 24">
-        {/* ascending chevron — a vantage point looking up at growth */}
+        {/* ascending chevron - a vantage point looking up at growth */}
         <Path
           d="M3 16.5 L9 9 L12.5 13 L21 4"
           stroke="#FFFFFF"

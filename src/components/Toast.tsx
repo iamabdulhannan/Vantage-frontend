@@ -28,7 +28,7 @@ export const toast = {
 const AUTO_DISMISS_MS = 4000;
 const MAX_VISIBLE = 2;
 
-/** Mount once at the app root — renders queued toasts above everything. */
+/** Mount once at the app root - renders queued toasts above everything. */
 export function ToastHost() {
   const t = useTheme();
   const insets = useSafeAreaInsets();

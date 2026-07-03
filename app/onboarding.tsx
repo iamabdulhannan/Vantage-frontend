@@ -47,10 +47,10 @@ const SLIDES: Slide[] = [
     icon: Wallet,
     tint: '#818CF8',
     title: 'Run your whole business from your pocket',
-    body: 'Vantage is like a manager for your shop or company — money in, money out, always up to date.',
+    body: 'Vantage is like a manager for your shop or company - money in, money out, always up to date.',
     bullets: [
       { icon: TrendingUp, color: '#34D399', text: 'Everything saves automatically to the cloud' },
-      { icon: Users2, color: '#22D3EE', text: 'Your whole team can use it — one account each' },
+      { icon: Users2, color: '#22D3EE', text: 'Your whole team can use it - one account each' },
     ],
   },
   {
@@ -60,8 +60,8 @@ const SLIDES: Slide[] = [
     title: 'A digital khata for every customer',
     body: 'Give goods on credit? Tap YOU GAVE. Cash comes in? Tap YOU GOT. The balance works itself out.',
     bullets: [
-      { icon: ArrowUpRight, color: '#FB7185', text: 'YOU GAVE — customer owes you more' },
-      { icon: ArrowDownLeft, color: '#34D399', text: 'YOU GOT — payment received, balance drops' },
+      { icon: ArrowUpRight, color: '#FB7185', text: 'YOU GAVE - customer owes you more' },
+      { icon: ArrowDownLeft, color: '#34D399', text: 'YOU GOT - payment received, balance drops' },
       { icon: Share2, color: '#818CF8', text: 'Share a PDF statement on WhatsApp anytime' },
     ],
   },
@@ -70,9 +70,9 @@ const SLIDES: Slide[] = [
     icon: LayoutDashboard,
     tint: '#818CF8',
     title: 'Know your money at a glance',
-    body: 'Revenue, expenses, profit and how long your cash will last — calculated live from what you record.',
+    body: 'Revenue, expenses, profit and how long your cash will last - calculated live from what you record.',
     bullets: [
-      { icon: TrendingUp, color: '#34D399', text: 'Real growth numbers — never made-up figures' },
+      { icon: TrendingUp, color: '#34D399', text: 'Real growth numbers - never made-up figures' },
       { icon: Wallet, color: '#FBBF24', text: 'Cash runway warns you before money runs low' },
     ],
   },
@@ -92,7 +92,7 @@ const SLIDES: Slide[] = [
 function SlideView({ slide, index, scrollX }: { slide: Slide; index: number; scrollX: Animated.SharedValue<number> }) {
   const range = [(index - 1) * W, index * W, (index + 1) * W];
 
-  // Parallax: the illustration drifts at half speed and scales in — the
+  // Parallax: the illustration drifts at half speed and scales in - the
   // classic onboarding motion pattern.
   const artStyle = useAnimatedStyle(() => ({
     transform: [
@@ -175,7 +175,7 @@ function SlideView({ slide, index, scrollX }: { slide: Slide; index: number; scr
   );
 }
 
-/** The famous "worm" pagination dot — active dot stretches, neighbours shrink. */
+/** The famous "worm" pagination dot - active dot stretches, neighbours shrink. */
 function Dot({ index, scrollX }: { index: number; scrollX: Animated.SharedValue<number> }) {
   const range = [(index - 1) * W, index * W, (index + 1) * W];
   const style = useAnimatedStyle(() => ({
@@ -212,7 +212,7 @@ export default function Onboarding() {
     try {
       await AsyncStorage.setItem(ONBOARDED_KEY, '1');
     } catch {
-      // non-fatal — worst case the tour shows again
+      // non-fatal - worst case the tour shows again
     }
     router.replace('/');
   };
@@ -288,7 +288,7 @@ export default function Onboarding() {
           ))}
         </View>
         <Button
-          label={last ? 'Get started — it’s easy' : 'Next'}
+          label={last ? 'Get started - it’s easy' : 'Next'}
           iconRight={ArrowRight}
           size="lg"
           onPress={next}

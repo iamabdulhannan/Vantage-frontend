@@ -9,7 +9,7 @@ export type { CompanyProfile } from '@/auth/AuthContext';
 
 interface CompanyContextValue {
   company: CompanyProfile | null;
-  /** Display name — falls back to the seed company before setup. */
+  /** Display name - falls back to the seed company before setup. */
   name: string;
   fiscalYear: string;
   /** Change plan / seats / cycle; optimistic locally + synced to the API when online. */
@@ -35,7 +35,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       }
       // Best-effort persistence when a live session is available.
       if (isApiEnabled() && getToken()) {
-        api.billing.update(input).catch((e) => toast.error(e?.message || 'Could not update billing — try again.'));
+        api.billing.update(input).catch((e) => toast.error(e?.message || 'Could not update billing - try again.'));
       }
     },
     [company, updateCompany],

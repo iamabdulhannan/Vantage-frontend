@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Share2, Pencil } from 'lucide-react-native';
+import { ArrowLeft, ArrowUpRight, ArrowDownLeft, Share2, Pencil, BellRing, CheckCircle2, XCircle, RotateCcw, CalendarClock } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Screen } from '@/components/Screen';
 import { Text } from '@/components/Text';
@@ -10,7 +10,7 @@ import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, PressableScale } from '@/components/motion';
-import { AddEntrySheet, EditEntrySheet, EditCustomerSheet } from '@/components/sheets';
+import { AddEntrySheet, EditEntrySheet, EditCustomerSheet, ReminderSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
 import { useCompany } from '@/data/company';
 import { shareStatement } from '@/utils/statement';
@@ -52,12 +52,13 @@ function GiveGotButton({ kind, onPress }: { kind: 'gave' | 'got'; onPress: () =>
 export default function LedgerDetail() {
   const t = useTheme();
   const router = useRouter();
-  const { customers } = useStore();
+  const { customers, setReminderStatus } = useStore();
   const { name: companyName } = useCompany();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [entryKind, setEntryKind] = useState<'gave' | 'got' | null>(null);
   const [editEntry, setEditEntry] = useState<LedgerEntry | null>(null);
   const [editCustomerOpen, setEditCustomerOpen] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
   const customer = customers.find((c) => c.id === id);
 
@@ -79,15 +80,16 @@ export default function LedgerDetail() {
   const balColor = settled ? t.colors.textSubtle : get ? t.colors.success : t.colors.danger;
   const balLabel = settled ? 'Settled up' : get ? "You'll get" : "You'll give";
 
-  // most recent last -> show running balance per row
-  const rows = customer.ledger;
+  // DigiKhata order: newest entry on top. Running balances stay chronological
+  // (computed oldest-first in recalc), we only flip the display order.
+  const rows = [...customer.ledger].reverse();
 
   const onShare = async () => {
     try {
       setSharing(true);
       await shareStatement(customer, { companyName });
     } catch {
-      // ignore — user cancelled or share unavailable
+      // ignore - user cancelled or share unavailable
     } finally {
       setSharing(false);
     }
@@ -125,6 +127,22 @@ export default function LedgerDetail() {
             <Text variant="bodySm" tone="muted" numberOfLines={1}>
               {[customer.company, customer.phone].filter(Boolean).join(' · ') || 'Customer'}
             </Text>
+            {customer.reliability && customer.reliability.label !== 'New' && (
+              <Text
+                variant="micro"
+                weight="bold"
+                style={{
+                  color:
+                    customer.reliability.label === 'Reliable'
+                      ? t.colors.success
+                      : customer.reliability.label === 'Usually pays'
+                      ? t.colors.accent
+                      : t.colors.danger,
+                }}
+              >
+                {customer.reliability.label} · {customer.reliability.kept} kept · {customer.reliability.missed} missed · {customer.reliability.rescheduled} rescheduled
+              </Text>
+            )}
           </View>
           <Pressable
             onPress={() => setEditCustomerOpen(true)}
@@ -173,7 +191,7 @@ export default function LedgerDetail() {
             <Text variant="caption" weight="semibold" style={{ color: balColor, letterSpacing: 0.3 }}>
               {balLabel.toUpperCase()}
             </Text>
-            <AnimatedNumber value={Math.abs(customer.balance)} compact size={34} weight="bold" color={balColor} />
+            <AnimatedNumber value={Math.abs(customer.balance)} compact={false} size={30} weight="bold" color={balColor} />
           </View>
           <View style={{ height: 1, backgroundColor: t.colors.divider }} />
           <View style={{ flexDirection: 'row' }}>
@@ -182,7 +200,7 @@ export default function LedgerDetail() {
                 Total you gave
               </Text>
               <Text variant="body" weight="bold" mono tone="danger">
-                {formatCurrency(totalGave, { compact: true })}
+                {formatCurrency(totalGave)}
               </Text>
             </View>
             <View style={{ flex: 1, gap: 3 }}>
@@ -190,7 +208,7 @@ export default function LedgerDetail() {
                 Total you got
               </Text>
               <Text variant="body" weight="bold" mono tone="success">
-                {formatCurrency(totalGot, { compact: true })}
+                {formatCurrency(totalGot)}
               </Text>
             </View>
           </View>
@@ -203,6 +221,95 @@ export default function LedgerDetail() {
           <GiveGotButton kind="gave" onPress={() => setEntryKind('gave')} />
           <GiveGotButton kind="got" onPress={() => setEntryKind('got')} />
         </View>
+      </Reveal>
+
+      {/* Payment promise / reminder */}
+      <Reveal index={idx++}>
+        {(() => {
+          const reminders = customer.reminders ?? [];
+          const active = reminders.find((r) => r.status === 'pending');
+          const history = reminders.filter((r) => r.status !== 'pending');
+          const overdue = active && new Date(active.dueAt).getTime() < Date.now();
+          return (
+            <Card elevation={1} style={{ gap: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: t.colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+                  <CalendarClock size={17} color={t.colors.accent} strokeWidth={2.2} />
+                </View>
+                <Text variant="bodySm" weight="semibold" style={{ flex: 1 }}>
+                  Payment promise
+                </Text>
+                {!active && (
+                  <PressableScale onPress={() => setReminderOpen(true)} nativeID="set-reminder" scaleTo={0.95} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.colors.accentSoft, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999 }}>
+                    <BellRing size={14} color={t.colors.accent} strokeWidth={2.4} />
+                    <Text variant="caption" weight="bold" tone="accent">
+                      Set reminder
+                    </Text>
+                  </PressableScale>
+                )}
+              </View>
+
+              {active && (
+                <View style={{ backgroundColor: overdue ? t.colors.dangerSoft : t.colors.surfaceAlt, borderRadius: t.radius.md, padding: 12, gap: 10 }}>
+                  <Text variant="bodySm" weight="semibold" tone={overdue ? 'danger' : 'default'}>
+                    {overdue ? 'Overdue: ' : 'Will pay on '}
+                    {formatDate(active.dueAt)}
+                    {active.note ? ` · ${active.note}` : ''}
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <PressableScale onPress={() => setReminderStatus(customer.id, active.id, 'kept')} nativeID="promise-kept" scaleTo={0.95} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.colors.successSoft, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999 }}>
+                      <CheckCircle2 size={13} color={t.colors.success} strokeWidth={2.4} />
+                      <Text variant="micro" weight="bold" style={{ color: t.colors.success }}>Paid</Text>
+                    </PressableScale>
+                    <PressableScale onPress={() => setReminderOpen(true)} nativeID="promise-reschedule" scaleTo={0.95} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.colors.warningSoft, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999 }}>
+                      <RotateCcw size={13} color={t.colors.warning} strokeWidth={2.4} />
+                      <Text variant="micro" weight="bold" style={{ color: t.colors.warning }}>Reschedule</Text>
+                    </PressableScale>
+                    <PressableScale onPress={() => setReminderStatus(customer.id, active.id, 'missed')} nativeID="promise-missed" scaleTo={0.95} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.colors.dangerSoft, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999 }}>
+                      <XCircle size={13} color={t.colors.danger} strokeWidth={2.4} />
+                      <Text variant="micro" weight="bold" style={{ color: t.colors.danger }}>Missed</Text>
+                    </PressableScale>
+                  </View>
+                </View>
+              )}
+
+              {history.length > 0 && (
+                <View style={{ gap: 8 }}>
+                  <Text variant="micro" tone="subtle" weight="semibold" style={{ letterSpacing: 0.4 }}>
+                    PROMISE HISTORY
+                  </Text>
+                  {history.slice(0, 5).map((r) => {
+                    const meta =
+                      r.status === 'kept'
+                        ? { icon: CheckCircle2, color: t.colors.success, label: 'Kept' }
+                        : r.status === 'missed'
+                        ? { icon: XCircle, color: t.colors.danger, label: 'Missed' }
+                        : { icon: RotateCcw, color: t.colors.warning, label: 'Rescheduled' };
+                    const HIcon = meta.icon;
+                    return (
+                      <View key={r.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <HIcon size={14} color={meta.color} strokeWidth={2.4} />
+                        <Text variant="caption" tone="muted" style={{ flex: 1 }} numberOfLines={1}>
+                          {formatDate(r.dueAt)}
+                          {r.note ? ` · ${r.note}` : ''}
+                        </Text>
+                        <Text variant="micro" weight="bold" style={{ color: meta.color }}>
+                          {meta.label}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+
+              {!active && history.length === 0 && (
+                <Text variant="caption" tone="subtle">
+                  No promise set. When {customer.name.split(' ')[0]} says "I will pay on Friday", save it here and we will remind you.
+                </Text>
+              )}
+            </Card>
+          );
+        })()}
       </Reveal>
 
       {/* Entries header */}
@@ -254,14 +361,17 @@ export default function LedgerDetail() {
                     {e.memo}
                   </Text>
                   <Text variant="micro" tone="subtle">
-                    {formatDate(e.date)} · Bal {formatCurrency(Math.abs(e.balance), { compact: true })}
+                    {formatDate(e.date)} · Bal {formatCurrency(Math.abs(e.balance))}{' '}
+                    <Text variant="micro" weight="semibold" style={{ color: e.balance > 0 ? t.colors.success : e.balance < 0 ? t.colors.danger : t.colors.textSubtle }}>
+                      {e.balance === 0 ? 'Settled' : e.balance > 0 ? "You'll get" : "You'll give"}
+                    </Text>
                   </Text>
                 </View>
                 <Text variant="bodySm" weight="bold" mono style={{ width: COL, textAlign: 'right', color: gave ? t.colors.danger : t.colors.textSubtle }}>
-                  {gave ? formatCurrency(e.debit, { compact: true }) : '—'}
+                  {gave ? formatCurrency(e.debit) : '-'}
                 </Text>
                 <Text variant="bodySm" weight="bold" mono style={{ width: COL, textAlign: 'right', color: !gave ? t.colors.success : t.colors.textSubtle }}>
-                  {!gave ? formatCurrency(e.credit, { compact: true }) : '—'}
+                  {!gave ? formatCurrency(e.credit) : '-'}
                 </Text>
               </PressableScale>
             </Reveal>
@@ -285,6 +395,12 @@ export default function LedgerDetail() {
         entry={editEntry}
         customerId={customer.id}
         onClose={() => setEditEntry(null)}
+      />
+      <ReminderSheet
+        visible={reminderOpen}
+        onClose={() => setReminderOpen(false)}
+        customerId={customer.id}
+        customerName={customer.name}
       />
       <EditCustomerSheet
         visible={editCustomerOpen}

@@ -37,6 +37,20 @@ export interface Partner {
   status: 'active' | 'review' | 'paused';
 }
 
+export interface Reminder {
+  id: string;
+  dueAt: string; // ISO
+  note?: string;
+  status: 'pending' | 'kept' | 'missed' | 'rescheduled';
+}
+
+export interface Reliability {
+  label: string;
+  kept: number;
+  missed: number;
+  rescheduled: number;
+}
+
 export interface LedgerEntry {
   id: string;
   date: string;
@@ -58,6 +72,8 @@ export interface Customer {
   status: 'current' | 'overdue' | 'settled';
   lastActivity: string;
   ledger: LedgerEntry[];
+  reminders?: Reminder[];
+  reliability?: Reliability;
 }
 
 export const company = {
@@ -153,10 +169,10 @@ export const customers: Customer[] = [
     status: 'overdue',
     lastActivity: '2026-06-18',
     ledger: entries([
-      { date: '2026-04-02', memo: 'Invoice #1042 — Q2 services', type: 'invoice', debit: 24_000, credit: 0 },
-      { date: '2026-04-20', memo: 'Payment received — ACH', type: 'payment', debit: 0, credit: 12_000 },
-      { date: '2026-05-11', memo: 'Invoice #1088 — freight', type: 'invoice', debit: 9_450, credit: 0 },
-      { date: '2026-05-30', memo: 'Credit note — adjustment', type: 'credit', debit: 0, credit: 3_000 },
+      { date: '2026-04-02', memo: 'Invoice #1042 - Q2 services', type: 'invoice', debit: 24_000, credit: 0 },
+      { date: '2026-04-20', memo: 'Payment received - ACH', type: 'payment', debit: 0, credit: 12_000 },
+      { date: '2026-05-11', memo: 'Invoice #1088 - freight', type: 'invoice', debit: 9_450, credit: 0 },
+      { date: '2026-05-30', memo: 'Credit note - adjustment', type: 'credit', debit: 0, credit: 3_000 },
     ]),
   },
   {
@@ -168,8 +184,8 @@ export const customers: Customer[] = [
     status: 'settled',
     lastActivity: '2026-06-12',
     ledger: entries([
-      { date: '2026-03-15', memo: 'Invoice #0991 — campaign', type: 'invoice', debit: 31_000, credit: 0 },
-      { date: '2026-04-01', memo: 'Payment received — wire', type: 'payment', debit: 0, credit: 31_000 },
+      { date: '2026-03-15', memo: 'Invoice #0991 - campaign', type: 'invoice', debit: 31_000, credit: 0 },
+      { date: '2026-04-01', memo: 'Payment received - wire', type: 'payment', debit: 0, credit: 31_000 },
     ]),
   },
   {
@@ -181,8 +197,8 @@ export const customers: Customer[] = [
     status: 'current',
     lastActivity: '2026-06-20',
     ledger: entries([
-      { date: '2026-05-05', memo: 'Invoice #1101 — supply', type: 'invoice', debit: 14_200, credit: 0 },
-      { date: '2026-06-01', memo: 'Payment received — card', type: 'payment', debit: 0, credit: 7_000 },
+      { date: '2026-05-05', memo: 'Invoice #1101 - supply', type: 'invoice', debit: 14_200, credit: 0 },
+      { date: '2026-06-01', memo: 'Payment received - card', type: 'payment', debit: 0, credit: 7_000 },
     ]),
   },
   {
@@ -194,8 +210,8 @@ export const customers: Customer[] = [
     status: 'overdue',
     lastActivity: '2026-06-09',
     ledger: entries([
-      { date: '2026-02-18', memo: 'Invoice #0934 — annual license', type: 'invoice', debit: 60_000, credit: 0 },
-      { date: '2026-03-22', memo: 'Payment received — wire', type: 'payment', debit: 0, credit: 17_200 },
+      { date: '2026-02-18', memo: 'Invoice #0934 - annual license', type: 'invoice', debit: 60_000, credit: 0 },
+      { date: '2026-03-22', memo: 'Payment received - wire', type: 'payment', debit: 0, credit: 17_200 },
     ]),
   },
   {
@@ -207,8 +223,8 @@ export const customers: Customer[] = [
     status: 'current',
     lastActivity: '2026-06-21',
     ledger: entries([
-      { date: '2026-06-02', memo: 'Invoice #1140 — POS units', type: 'invoice', debit: 8_150, credit: 0 },
-      { date: '2026-06-15', memo: 'Payment received — ACH', type: 'payment', debit: 0, credit: 5_000 },
+      { date: '2026-06-02', memo: 'Invoice #1140 - POS units', type: 'invoice', debit: 8_150, credit: 0 },
+      { date: '2026-06-15', memo: 'Payment received - ACH', type: 'payment', debit: 0, credit: 5_000 },
     ]),
   },
   {
@@ -221,7 +237,7 @@ export const customers: Customer[] = [
     lastActivity: '2026-05-28',
     ledger: entries([
       { date: '2026-04-10', memo: 'Materials supplied on credit', type: 'invoice', debit: 22_500, credit: 0 },
-      { date: '2026-05-02', memo: 'Payment received — wire', type: 'payment', debit: 0, credit: 22_500 },
+      { date: '2026-05-02', memo: 'Payment received - wire', type: 'payment', debit: 0, credit: 22_500 },
       { date: '2026-05-20', memo: 'Advance for next order', type: 'payment', debit: 0, credit: 5_000 },
     ]),
   },
@@ -271,7 +287,7 @@ import { taxRuleFor } from '@/utils/salary-tax';
 export function computePayroll(list: Employee[] = employees, country?: string | null, currencyCode?: string | null) {
   const rule = taxRuleFor(country, currencyCode);
   const gross = list.reduce((s, e) => s + e.salary, 0);
-  // Progressive slabs are per-person — each salary is taxed in its own bracket.
+  // Progressive slabs are per-person - each salary is taxed in its own bracket.
   const tax = list.reduce((s, e) => s + rule.monthlyTax(e.salary), 0);
   const net = gross - tax;
   const paid = list.filter((e) => e.status === 'paid');
