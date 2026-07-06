@@ -16,7 +16,7 @@ import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { Partner } from '@/data/mock';
 import { formatCurrency, formatPercent } from '@/data/format';
 
-const SHARE_COLORS = ['#4F46E5', '#6366F1', '#818CF8', '#06B6D4', '#22D3EE'];
+const SHARE_COLORS = ['#16A34A', '#0E7490', '#C2760A', '#15803D', '#0891B2'];
 
 const STATUS: Record<Partner['status'], { intent: 'success' | 'warning' | 'neutral'; label: string }> = {
   active: { intent: 'success', label: 'Active' },

@@ -133,15 +133,15 @@ export const monthlySeries: SeriesPoint[] = [
 ];
 
 export const expenseBreakdown: ExpenseSlice[] = [
-  { label: 'Payroll', value: 1_320_000, color: '#4F46E5' },
-  { label: 'Operations', value: 642_000, color: '#6366F1' },
-  { label: 'Marketing', value: 458_000, color: '#818CF8' },
-  { label: 'R&D', value: 326_300, color: '#06B6D4' },
-  { label: 'Facilities', value: 210_000, color: '#22D3EE' },
+  { label: 'Payroll', value: 1_320_000, color: '#16A34A' },
+  { label: 'Operations', value: 642_000, color: '#0E7490' },
+  { label: 'Marketing', value: 458_000, color: '#15803D' },
+  { label: 'R&D', value: 326_300, color: '#C2760A' },
+  { label: 'Facilities', value: 210_000, color: '#0891B2' },
 ];
 
 // Palette ramp for dynamically-added expense categories.
-export const EXPENSE_COLORS = ['#4F46E5', '#6366F1', '#818CF8', '#06B6D4', '#22D3EE', '#A5B4FC', '#67E8F9'];
+export const EXPENSE_COLORS = ['#16A34A', '#0E7490', '#C2760A', '#15803D', '#0891B2', '#65A30D', '#B45309'];
 
 export const partners: Partner[] = [
   { id: 'p1', name: 'Meridian Capital', region: 'North America', share: 32, revenue: 1_542_000, delta: 9.1, status: 'active' },

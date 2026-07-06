@@ -1,7 +1,7 @@
 /**
- * Vantage design tokens - "Trust & Authority" finance theme.
- * Professional navy + electric blue, full light & dark support.
- * Money/data values use Fira Code (tabular figures); UI uses Fira Sans.
+ * Vantage design tokens - "Meadow" finance theme.
+ * Warm cream surfaces, white cards and a confident emerald accent,
+ * with a deep-green dark mode. One family app-wide: Fira Sans.
  */
 
 export type Mode = 'light' | 'dark';
@@ -44,72 +44,72 @@ export interface Palette {
 }
 
 export const lightPalette: Palette = {
-  bg: '#F4F5FB',
+  bg: '#F4F5EF',
   bgElevated: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceAlt: '#EEEFFA',
-  surfaceSunken: '#E6E8F6',
+  surfaceAlt: '#EFF1E8',
+  surfaceSunken: '#E8EBDF',
 
-  brand: '#1E1B4B',
+  brand: '#151A17',
   brandText: '#FFFFFF',
-  accent: '#4F46E5',
-  accentPressed: '#4338CA',
-  accentSoft: '#E9E9FE',
+  accent: '#16A34A',
+  accentPressed: '#15803D',
+  accentSoft: '#E3F3E8',
   accentText: '#FFFFFF',
 
-  text: '#0E1130',
-  textMuted: '#565B83',
-  textSubtle: '#8A8FB4',
-  textInverse: '#F5F6FF',
+  text: '#171C19',
+  textMuted: '#5C665F',
+  textSubtle: '#939C94',
+  textInverse: '#FFFFFF',
 
-  border: '#E6E7F4',
-  borderStrong: '#CFD1EC',
-  divider: '#EEEFF8',
+  border: '#EBEDE3',
+  borderStrong: '#D6DACB',
+  divider: '#F0F2E9',
 
-  success: '#0F9D58',
-  successSoft: '#DCFCE7',
-  warning: '#B45309',
-  warningSoft: '#FEF3C7',
-  danger: '#E11D48',
-  dangerSoft: '#FFE4E6',
-  info: '#4F46E5',
-  infoSoft: '#E9E9FE',
+  success: '#16A34A',
+  successSoft: '#E3F3E8',
+  warning: '#C2760A',
+  warningSoft: '#FBF0DB',
+  danger: '#DC2626',
+  dangerSoft: '#FCE9E7',
+  info: '#0E7490',
+  infoSoft: '#E0F2F5',
 
-  scrim: 'rgba(15, 12, 40, 0.5)',
-  shimmer: 'rgba(79, 70, 229, 0.06)',
+  scrim: 'rgba(21, 26, 23, 0.45)',
+  shimmer: 'rgba(22, 163, 74, 0.06)',
 };
 
 export const darkPalette: Palette = {
-  bg: '#0B1020',
-  bgElevated: '#141A30',
-  surface: '#141A30',
-  surfaceAlt: '#1C2342',
-  surfaceSunken: '#0D1326',
+  bg: '#0F1512',
+  bgElevated: '#171F1A',
+  surface: '#171F1A',
+  surfaceAlt: '#20291F',
+  surfaceSunken: '#0C110E',
 
-  brand: '#0B1020',
-  brandText: '#EEF2FF',
-  accent: '#818CF8',
-  accentPressed: '#6366F1',
-  accentSoft: 'rgba(129, 140, 248, 0.18)',
-  accentText: '#FFFFFF',
+  brand: '#0F1512',
+  brandText: '#F0F5EF',
+  accent: '#34D399',
+  accentPressed: '#10B981',
+  accentSoft: 'rgba(52, 211, 153, 0.16)',
+  accentText: '#0B1B12',
 
-  text: '#EEF2FF',
-  textMuted: '#A6ADCE',
-  textSubtle: '#6E7599',
-  textInverse: '#0B1020',
+  text: '#F0F5EF',
+  textMuted: '#A9B5AA',
+  textSubtle: '#71806F',
+  textInverse: '#0F1512',
 
-  border: '#242C4B',
-  borderStrong: '#34406B',
-  divider: '#1A2238',
+  border: '#25301F',
+  borderStrong: '#37452F',
+  divider: '#1B241C',
 
   success: '#34D399',
   successSoft: 'rgba(52, 211, 153, 0.16)',
   warning: '#FBBF24',
   warningSoft: 'rgba(251, 191, 36, 0.16)',
-  danger: '#FB7185',
-  dangerSoft: 'rgba(251, 113, 133, 0.16)',
-  info: '#818CF8',
-  infoSoft: 'rgba(129, 140, 248, 0.18)',
+  danger: '#F87171',
+  dangerSoft: 'rgba(248, 113, 113, 0.16)',
+  info: '#67E8F9',
+  infoSoft: 'rgba(103, 232, 249, 0.14)',
 
   scrim: 'rgba(0, 0, 0, 0.62)',
   shimmer: 'rgba(255, 255, 255, 0.06)',
@@ -124,14 +124,14 @@ export interface GradientSet {
 
 export const gradients: { light: GradientSet; dark: GradientSet } = {
   light: {
-    brand: ['#1E1B4B', '#312E81'] as const,
-    accent: ['#4F46E5', '#06B6D4'] as const,
-    glow: ['rgba(79,70,229,0.20)', 'rgba(6,182,212,0.02)'] as const,
+    brand: ['#151A17', '#25302A'] as const,
+    accent: ['#16A34A', '#22C55E'] as const,
+    glow: ['rgba(22,163,74,0.16)', 'rgba(244,245,239,0)'] as const,
   },
   dark: {
-    brand: ['#0B1020', '#1E1B4B'] as const,
-    accent: ['#6366F1', '#22D3EE'] as const,
-    glow: ['rgba(99,102,241,0.24)', 'rgba(11,16,32,0)'] as const,
+    brand: ['#0F1512', '#1B2A20'] as const,
+    accent: ['#10B981', '#34D399'] as const,
+    glow: ['rgba(52,211,153,0.20)', 'rgba(15,21,18,0)'] as const,
   },
 };
 
@@ -188,8 +188,8 @@ export const type = {
 export function shadow(mode: Mode, level: 1 | 2 | 3) {
   // Web uses boxShadow via RN-web; native uses elevation/shadow props.
   const dark = mode === 'dark';
-  const color = dark ? '#000000' : '#1E1B4B';
-  const opacity = dark ? [0.4, 0.5, 0.6][level - 1] : [0.06, 0.1, 0.16][level - 1];
+  const color = dark ? '#000000' : '#3A4438';
+  const opacity = dark ? [0.4, 0.5, 0.6][level - 1] : [0.05, 0.08, 0.12][level - 1];
   const radiusMap = [10, 20, 36][level - 1];
   const offsetY = [4, 10, 20][level - 1];
   return {

@@ -13,7 +13,7 @@ export function buildStatementHtml(customer: Customer, opts: { companyName: stri
   const totalGot = customer.ledger.reduce((s, e) => s + e.credit, 0);
   const bal = customer.balance;
   const balLabel = bal === 0 ? 'Settled up' : bal > 0 ? "You'll get" : "You'll give";
-  const balColor = bal === 0 ? '#64748b' : bal > 0 ? '#0F9D58' : '#E11D48';
+  const balColor = bal === 0 ? '#64748b' : bal > 0 ? '#16A34A' : '#DC2626';
   const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
   const rows =
@@ -21,7 +21,7 @@ export function buildStatementHtml(customer: Customer, opts: { companyName: stri
       .map((e) => {
         const gave = e.debit > 0;
         const dir = e.balance === 0 ? 'Settled' : e.balance > 0 ? "You'll get" : "You'll give";
-        const dirColor = e.balance === 0 ? '#64748b' : e.balance > 0 ? '#0F9D58' : '#E11D48';
+        const dirColor = e.balance === 0 ? '#64748b' : e.balance > 0 ? '#16A34A' : '#DC2626';
         return `<tr>
           <td>${formatDate(e.date)}</td>
           <td>${esc(e.memo)}</td>
@@ -37,7 +37,7 @@ export function buildStatementHtml(customer: Customer, opts: { companyName: stri
   <style>
     * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body { font-family: -apple-system, 'Helvetica Neue', Roboto, Arial, sans-serif; color: #0E1130; margin: 0; }
-    .head { background: linear-gradient(135deg, #4F46E5, #06B6D4); color: #fff; padding: 28px 32px; }
+    .head { background: linear-gradient(135deg, #16A34A, #22C55E); color: #fff; padding: 28px 32px; }
     .brand { font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; opacity: .9; }
     .title { font-size: 26px; font-weight: 800; margin-top: 6px; }
     .sub { font-size: 13px; opacity: .85; margin-top: 2px; }
@@ -48,13 +48,13 @@ export function buildStatementHtml(customer: Customer, opts: { companyName: stri
     .muted { color: #565B83; font-size: 13px; margin-top: 2px; }
     .bal { font-size: 30px; font-weight: 800; }
     .cards { display: flex; gap: 16px; margin: 22px 0 8px; }
-    .card { flex: 1; background: #F4F5FB; border-radius: 12px; padding: 14px 16px; }
+    .card { flex: 1; background: #F4F5EF; border-radius: 12px; padding: 14px 16px; }
     table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
     th { text-align: left; color: #8A8FB4; font-size: 10px; letter-spacing: .5px; text-transform: uppercase; border-bottom: 2px solid #E6E7F4; padding: 9px 6px; }
     td { padding: 11px 6px; border-bottom: 1px solid #EEEFF8; }
     .r { text-align: right; font-variant-numeric: tabular-nums; }
     .bold { font-weight: 700; }
-    .red { color: #E11D48; } .green { color: #0F9D58; }
+    .red { color: #DC2626; } .green { color: #16A34A; }
     .foot { margin-top: 28px; color: #8A8FB4; font-size: 11px; text-align: center; }
   </style></head>
   <body>

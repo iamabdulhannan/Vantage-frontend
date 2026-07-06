@@ -24,6 +24,7 @@ import {
   Share2,
   type LucideIcon,
 } from 'lucide-react-native';
+import { useTheme } from '@/theme/ThemeProvider';
 import { Text } from '@/components/Text';
 import { Button } from '@/components/Button';
 import { LogoMark } from '@/components/Logo';
@@ -45,46 +46,46 @@ const SLIDES: Slide[] = [
   {
     key: 'welcome',
     icon: Wallet,
-    tint: '#818CF8',
+    tint: '#16A34A',
     title: 'Run your whole business from your pocket',
     body: 'Vantage is like a manager for your shop or company - money in, money out, always up to date.',
     bullets: [
-      { icon: TrendingUp, color: '#34D399', text: 'Everything saves automatically to the cloud' },
-      { icon: Users2, color: '#22D3EE', text: 'Your whole team can use it - one account each' },
+      { icon: TrendingUp, color: '#16A34A', text: 'Everything saves automatically to the cloud' },
+      { icon: Users2, color: '#0E7490', text: 'Your whole team can use it - one account each' },
     ],
   },
   {
     key: 'khata',
     icon: BookOpen,
-    tint: '#22D3EE',
+    tint: '#0E7490',
     title: 'A digital khata for every customer',
     body: 'Give goods on credit? Tap YOU GAVE. Cash comes in? Tap YOU GOT. The balance works itself out.',
     bullets: [
-      { icon: ArrowUpRight, color: '#FB7185', text: 'YOU GAVE - customer owes you more' },
-      { icon: ArrowDownLeft, color: '#34D399', text: 'YOU GOT - payment received, balance drops' },
-      { icon: Share2, color: '#818CF8', text: 'Share a PDF statement on WhatsApp anytime' },
+      { icon: ArrowUpRight, color: '#DC2626', text: 'YOU GAVE - customer owes you more' },
+      { icon: ArrowDownLeft, color: '#16A34A', text: 'YOU GOT - payment received, balance drops' },
+      { icon: Share2, color: '#15803D', text: 'Share a PDF statement on WhatsApp anytime' },
     ],
   },
   {
     key: 'dashboard',
     icon: LayoutDashboard,
-    tint: '#818CF8',
+    tint: '#16A34A',
     title: 'Know your money at a glance',
     body: 'Revenue, expenses, profit and how long your cash will last - calculated live from what you record.',
     bullets: [
-      { icon: TrendingUp, color: '#34D399', text: 'Real growth numbers - never made-up figures' },
-      { icon: Wallet, color: '#FBBF24', text: 'Cash runway warns you before money runs low' },
+      { icon: TrendingUp, color: '#16A34A', text: 'Real growth numbers - never made-up figures' },
+      { icon: Wallet, color: '#C2760A', text: 'Cash runway warns you before money runs low' },
     ],
   },
   {
     key: 'team',
     icon: Users2,
-    tint: '#34D399',
+    tint: '#C2760A',
     title: 'Pay your team & partners right',
     body: 'Salaries with tax worked out for you, and partner profit split to the exact percent. No calculator needed.',
     bullets: [
-      { icon: Wallet, color: '#22D3EE', text: 'One tap runs the whole payroll' },
-      { icon: TrendingUp, color: '#818CF8', text: 'Each partner sees their exact share' },
+      { icon: Wallet, color: '#0E7490', text: 'One tap runs the whole payroll' },
+      { icon: TrendingUp, color: '#15803D', text: 'Each partner sees their exact share' },
     ],
   },
 ];
@@ -116,7 +117,7 @@ function SlideView({ slide, index, scrollX }: { slide: Slide; index: number; scr
         <View style={{ width: 168, height: 168, alignItems: 'center', justifyContent: 'center' }}>
           {/* Glow orb */}
           <LinearGradient
-            colors={[`${slide.tint}55`, `${slide.tint}00`]}
+            colors={[`${slide.tint}2E`, `${slide.tint}00`]}
             style={{ position: 'absolute', width: 168, height: 168, borderRadius: 84 }}
           />
           <View
@@ -124,9 +125,9 @@ function SlideView({ slide, index, scrollX }: { slide: Slide; index: number; scr
               width: 116,
               height: 116,
               borderRadius: 34,
-              backgroundColor: 'rgba(255,255,255,0.06)',
+              backgroundColor: '#FFFFFF',
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.14)',
+              borderColor: 'rgba(21,26,23,0.06)',
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -138,10 +139,10 @@ function SlideView({ slide, index, scrollX }: { slide: Slide; index: number; scr
 
       {/* Copy */}
       <Animated.View style={[{ gap: 14 }, textStyle]}>
-        <Text variant="h1" weight="bold" style={{ color: '#FFFFFF', letterSpacing: -0.6, lineHeight: 36 }}>
+        <Text variant="h1" weight="bold" style={{ letterSpacing: -0.6, lineHeight: 36 }}>
           {slide.title}
         </Text>
-        <Text variant="body" style={{ color: 'rgba(235,238,255,0.72)', lineHeight: 23 }}>
+        <Text variant="body" tone="muted" style={{ lineHeight: 23 }}>
           {slide.body}
         </Text>
         <View style={{ gap: 12, marginTop: 8 }}>
@@ -154,16 +155,16 @@ function SlideView({ slide, index, scrollX }: { slide: Slide; index: number; scr
                     width: 34,
                     height: 34,
                     borderRadius: 11,
-                    backgroundColor: 'rgba(255,255,255,0.07)',
+                    backgroundColor: '#FFFFFF',
                     borderWidth: 1,
-                    borderColor: 'rgba(255,255,255,0.10)',
+                    borderColor: 'rgba(21,26,23,0.06)',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
                   <BIcon size={16} color={b.color} strokeWidth={2.4} />
                 </View>
-                <Text variant="bodySm" style={{ color: 'rgba(235,238,255,0.85)', flex: 1, lineHeight: 20 }} weight="medium">
+                <Text variant="bodySm" tone="muted" style={{ flex: 1, lineHeight: 20 }} weight="medium">
                   {b.text}
                 </Text>
               </View>
@@ -184,12 +185,13 @@ function Dot({ index, scrollX }: { index: number; scrollX: Animated.SharedValue<
   }));
   return (
     <Animated.View
-      style={[{ height: 8, borderRadius: 4, backgroundColor: '#A5B4FC' }, style]}
+      style={[{ height: 8, borderRadius: 4, backgroundColor: '#16A34A' }, style]}
     />
   );
 }
 
 export default function Onboarding() {
+  const t = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const scrollX = useSharedValue(0);
@@ -228,13 +230,9 @@ export default function Onboarding() {
   const last = page === SLIDES.length - 1;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0B1020' }}>
+    <View style={{ flex: 1, backgroundColor: t.colors.bg }}>
       <LinearGradient
-        colors={['#0B1020', '#1E1B4B', '#0B1020']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-      />
-      <LinearGradient
-        colors={['rgba(99,102,241,0.22)', 'rgba(11,16,32,0)']}
+        colors={t.gradients.glow}
         start={{ x: 0.3, y: 0 }}
         end={{ x: 0.9, y: 0.7 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 420 }}
@@ -252,13 +250,13 @@ export default function Onboarding() {
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <LogoMark size={34} />
-          <Text variant="h3" weight="bold" style={{ color: '#FFFFFF', letterSpacing: -0.4 }}>
+          <Text variant="h3" weight="bold" style={{ letterSpacing: -0.4 }}>
             Vantage
           </Text>
         </View>
         {!last && (
           <Pressable onPress={finish} hitSlop={10} accessibilityLabel="Skip tour" nativeID="onboarding-skip">
-            <Text variant="bodySm" weight="semibold" style={{ color: 'rgba(235,238,255,0.6)' }}>
+            <Text variant="bodySm" weight="semibold" tone="subtle">
               Skip
             </Text>
           </Pressable>

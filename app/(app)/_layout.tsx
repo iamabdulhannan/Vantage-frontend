@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
+import { FloatingTabBar } from '@/components/FloatingTabBar';
 import { LayoutDashboard, BookOpen, Wallet, Users, Settings } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -8,24 +9,9 @@ export default function AppTabs() {
   const t = useTheme();
   return (
     <Tabs
+      tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: t.colors.accent,
-        tabBarInactiveTintColor: t.colors.textSubtle,
-        tabBarStyle: {
-          backgroundColor: t.colors.surface,
-          borderTopColor: t.colors.border,
-          borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 92 : 84,
-          paddingTop: 10,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 18,
-        },
-        tabBarLabelStyle: {
-          fontFamily: t.fonts.medium,
-          fontSize: 10.5,
-          lineHeight: 15,
-          letterSpacing: 0.2,
-        },
         sceneStyle: { backgroundColor: t.colors.bg },
       }}
     >

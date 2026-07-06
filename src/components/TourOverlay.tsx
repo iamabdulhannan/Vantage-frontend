@@ -28,37 +28,37 @@ interface TourStep {
 const STEPS: TourStep[] = [
   {
     icon: LayoutDashboard,
-    tint: '#818CF8',
+    tint: '#16A34A',
     title: 'This is your Overview',
     body: 'Revenue, capital, expenses and profit, all live. Every number here comes from what you record, nothing is made up.',
   },
   {
     icon: BookOpen,
-    tint: '#22D3EE',
+    tint: '#0E7490',
     title: 'Ledgers is your khata book',
     body: 'Add customers, tap YOU GAVE when you give credit and YOU GOT when cash comes in. Share a PDF statement on WhatsApp anytime.',
   },
   {
     icon: BellRing,
-    tint: '#FBBF24',
+    tint: '#C2760A',
     title: 'Never chase payments from memory',
     body: 'Inside any customer khata, set a payment reminder. We notify you a day before and on the day. Their promise history builds a reliability status.',
   },
   {
     icon: Wallet,
-    tint: '#34D399',
+    tint: '#16A34A',
     title: 'Payroll runs itself',
     body: 'Add employees with salaries. Tax is worked out per person using real government slabs, and one tap pays everyone.',
   },
   {
     icon: Users,
-    tint: '#A5B4FC',
+    tint: '#15803D',
     title: 'Partners get their exact share',
     body: 'Record each partner with their percentage. Payouts are computed for you, and you always see what the company keeps.',
   },
   {
     icon: Settings,
-    tint: '#67E8F9',
+    tint: '#0E7490',
     title: 'Settings has the rest',
     body: 'Edit your company profile, manage team seats, and change your plan anytime. That is the tour, go run your business.',
   },
@@ -94,7 +94,7 @@ export function TourOverlay() {
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={finish} statusBarTranslucent>
-      <View style={{ flex: 1, backgroundColor: 'rgba(6, 9, 22, 0.82)', justifyContent: 'flex-end' }}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(21, 26, 23, 0.55)', justifyContent: 'flex-end' }}>
         <Pressable style={{ flex: 1 }} onPress={finish} accessibilityLabel="Skip tour" />
         <Animated.View
           key={step}

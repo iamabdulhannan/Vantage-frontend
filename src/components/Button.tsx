@@ -80,7 +80,7 @@ export function Button({
 
   const baseStyle: ViewStyle = {
     height,
-    borderRadius: 18,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: t.spacing['2xl'],

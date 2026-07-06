@@ -75,19 +75,19 @@ function ThemedLoader() {
   const logoStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0B1020', alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ flex: 1, backgroundColor: '#F4F5EF', alignItems: 'center', justifyContent: 'center' }}>
       <LinearGradient
-        colors={['#0B1020', '#1E1B4B', '#0B1020']}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        colors={['rgba(22,163,74,0.10)', 'rgba(244,245,239,0)']}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 360 }}
       />
       <Animated.View style={[{ alignItems: 'center', gap: 16 }, logoStyle]}>
         <LogoMark size={72} />
         {/* System font on purpose - this renders before custom fonts load. */}
-        <RNText style={{ color: '#FFFFFF', fontSize: 24, fontWeight: '700', letterSpacing: -0.5 }}>
+        <RNText style={{ color: '#171C19', fontSize: 24, fontWeight: '700', letterSpacing: -0.5 }}>
           Vantage
         </RNText>
       </Animated.View>
-      <RNText style={{ color: 'rgba(235,238,255,0.45)', fontSize: 12, position: 'absolute', bottom: 48 }}>
+      <RNText style={{ color: 'rgba(23,28,25,0.45)', fontSize: 12, position: 'absolute', bottom: 48 }}>
         Your business, in full view
       </RNText>
     </View>

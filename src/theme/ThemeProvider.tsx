@@ -31,14 +31,12 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const system = useColorScheme();
   const [override, setOverride] = useState<Mode | null>(null);
-  const mode: Mode = override ?? (system === 'dark' ? 'dark' : 'light');
+  // Meadow ships light-first; the header toggle still switches to dark green.
+  const mode: Mode = override ?? 'light';
 
   const toggleMode = useCallback(() => {
-    setOverride((prev) => {
-      const current = prev ?? (system === 'dark' ? 'dark' : 'light');
-      return current === 'dark' ? 'light' : 'dark';
-    });
-  }, [system]);
+    setOverride((prev) => ((prev ?? 'light') === 'dark' ? 'light' : 'dark'));
+  }, []);
 
   const value = useMemo<ThemeContextValue>(
     () => ({

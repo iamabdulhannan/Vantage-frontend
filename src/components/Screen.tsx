@@ -35,7 +35,7 @@ export function Screen({
       // clear of the keyboard on every platform (incl. Android edge-to-edge,
       // where adjustResize no longer resizes the window).
       contentContainerStyle={[
-        { paddingTop: insets.top + t.spacing.sm, paddingHorizontal: pad, paddingBottom: 32 + kb, gap: t.spacing.xl },
+        { paddingTop: insets.top + t.spacing.sm, paddingHorizontal: pad, paddingBottom: 108 + kb, gap: t.spacing.xl },
         style,
       ]}
       keyboardShouldPersistTaps="handled"

@@ -17,8 +17,6 @@ import { shareStatement } from '@/utils/statement';
 import { formatCurrency, formatDate } from '@/data/format';
 import type { LedgerEntry } from '@/data/mock';
 
-const COL = 84;
-
 function GiveGotButton({ kind, onPress }: { kind: 'gave' | 'got'; onPress: () => void }) {
   const t = useTheme();
   const isGave = kind === 'gave';
@@ -314,17 +312,9 @@ export default function LedgerDetail() {
 
       {/* Entries header */}
       <Reveal index={idx++}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 }}>
-          <Text variant="micro" tone="subtle" weight="semibold" style={{ flex: 1, letterSpacing: 0.4 }}>
-            ENTRIES
-          </Text>
-          <Text variant="micro" weight="semibold" style={{ width: COL, textAlign: 'right', color: t.colors.danger, letterSpacing: 0.3 }}>
-            YOU GAVE
-          </Text>
-          <Text variant="micro" weight="semibold" style={{ width: COL, textAlign: 'right', color: t.colors.success, letterSpacing: 0.3 }}>
-            YOU GOT
-          </Text>
-        </View>
+        <Text variant="micro" tone="subtle" weight="semibold" style={{ letterSpacing: 0.4, paddingHorizontal: 4 }}>
+          ENTRIES · NEWEST FIRST
+        </Text>
       </Reveal>
 
       <Card elevation={1} padded={false} style={{ overflow: 'hidden' }}>
@@ -356,23 +346,22 @@ export default function LedgerDetail() {
                   borderTopColor: t.colors.divider,
                 }}
               >
-                <View style={{ flex: 1, gap: 3, paddingRight: 6 }}>
+                <View style={{ flex: 1, minWidth: 0, gap: 3, paddingRight: 10 }}>
                   <Text variant="bodySm" weight="medium" numberOfLines={1}>
                     {e.memo}
                   </Text>
-                  <Text variant="micro" tone="subtle">
-                    {formatDate(e.date)} · Bal {formatCurrency(Math.abs(e.balance))}{' '}
-                    <Text variant="micro" weight="semibold" style={{ color: e.balance > 0 ? t.colors.success : e.balance < 0 ? t.colors.danger : t.colors.textSubtle }}>
-                      {e.balance === 0 ? 'Settled' : e.balance > 0 ? "You'll get" : "You'll give"}
-                    </Text>
+                  <Text variant="micro" tone="subtle" numberOfLines={1}>
+                    {formatDate(e.date)} · {gave ? 'You gave' : 'You got'}
                   </Text>
                 </View>
-                <Text variant="bodySm" weight="bold" mono style={{ width: COL, textAlign: 'right', color: gave ? t.colors.danger : t.colors.textSubtle }}>
-                  {gave ? formatCurrency(e.debit) : '-'}
-                </Text>
-                <Text variant="bodySm" weight="bold" mono style={{ width: COL, textAlign: 'right', color: !gave ? t.colors.success : t.colors.textSubtle }}>
-                  {!gave ? formatCurrency(e.credit) : '-'}
-                </Text>
+                <View style={{ alignItems: 'flex-end', flexShrink: 0, gap: 3 }}>
+                  <Text variant="bodySm" weight="bold" mono style={{ color: gave ? t.colors.danger : t.colors.success }}>
+                    {gave ? '-' : '+'}{formatCurrency(gave ? e.debit : e.credit)}
+                  </Text>
+                  <Text variant="micro" weight="semibold" style={{ color: e.balance > 0 ? t.colors.success : e.balance < 0 ? t.colors.danger : t.colors.textSubtle }} numberOfLines={1}>
+                    Bal {formatCurrency(Math.abs(e.balance))} {e.balance === 0 ? '· Settled' : e.balance > 0 ? "· You'll get" : "· You'll give"}
+                  </Text>
+                </View>
               </PressableScale>
             </Reveal>
           );

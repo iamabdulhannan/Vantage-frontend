@@ -45,7 +45,7 @@ export default function Login() {
   return (
     <View style={{ flex: 1, backgroundColor: t.colors.bg }}>
       {/* Brand header */}
-      <LinearGradient colors={['#0B1020', '#1E1B4B']} style={{ paddingTop: insets.top + 12, paddingBottom: 36, paddingHorizontal: 24 }}>
+      <LinearGradient colors={t.gradients.brand} style={{ paddingTop: insets.top + 12, paddingBottom: 36, paddingHorizontal: 24 }}>
         <Pressable
           onPress={() => router.back()}
           hitSlop={12}

@@ -11,17 +11,17 @@ export function Fab({ icon: Icon, label, onPress }: { icon: LucideIcon; label?: 
   const t = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <View style={{ position: 'absolute', right: 18, bottom: insets.bottom + 18 }} pointerEvents="box-none">
+    <View style={{ position: 'absolute', right: 18, bottom: insets.bottom + 92 }} pointerEvents="box-none">
       <PressableScale onPress={onPress} scaleTo={0.94} nativeID="fab" accessibilityLabel={label ?? 'Add'}>
         <LinearGradient
           colors={t.gradients.accent}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
-            height: 50,
-            borderRadius: 16,
-            paddingHorizontal: label ? 18 : 0,
-            width: label ? undefined : 50,
+            height: 54,
+            borderRadius: 999,
+            paddingHorizontal: label ? 20 : 0,
+            width: label ? undefined : 54,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
