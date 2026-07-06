@@ -30,6 +30,10 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
+        name="expenses"
+        options={{ title: 'Expenses' }}
+      />
+      <Tabs.Screen
         name="payroll"
         options={{
           title: 'Payroll',
@@ -52,7 +56,6 @@ export default function AppTabs() {
       />
       {/* Routable but hidden from the tab bar */}
       <Tabs.Screen name="billing" options={{ href: null }} />
-      <Tabs.Screen name="expenses" options={{ href: null }} />
       <Tabs.Screen name="company" options={{ href: null }} />
       <Tabs.Screen name="team" options={{ href: null }} />
       <Tabs.Screen name="notifications" options={{ href: null }} />

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { LayoutDashboard, BookOpen, Wallet, Users, Settings, Plus, type LucideIcon } from 'lucide-react-native';
+import { LayoutDashboard, BookOpen, ReceiptText, Wallet, Users, Settings, Plus, type LucideIcon } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { triggerQuickAdd } from '@/utils/quickAdd';
 import { PressableScale } from './motion';
@@ -10,6 +10,7 @@ import { PressableScale } from './motion';
 const TAB_META: Record<string, { icon: LucideIcon; label: string }> = {
   dashboard: { icon: LayoutDashboard, label: 'Home' },
   ledgers: { icon: BookOpen, label: 'Ledgers' },
+  expenses: { icon: ReceiptText, label: 'Expenses' },
   payroll: { icon: Wallet, label: 'Payroll' },
   partners: { icon: Users, label: 'Partners' },
   settings: { icon: Settings, label: 'Settings' },
@@ -51,8 +52,8 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
           style={{
             backgroundColor: t.colors.brand,
             borderRadius: 999,
-            width: 46,
-            height: 46,
+            width: 42,
+            height: 44,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -69,15 +70,16 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
         accessibilityRole="button"
         accessibilityLabel={meta.label}
         hitSlop={6}
-        style={{ width: 46, height: 46, alignItems: 'center', justifyContent: 'center' }}
+        style={{ width: 42, height: 44, alignItems: 'center', justifyContent: 'center' }}
       >
         <Icon size={21} color={t.colors.textSubtle} strokeWidth={2} />
       </Pressable>
     );
   };
 
-  const leftTabs = visibleRoutes.slice(0, 2);
-  const rightTabs = visibleRoutes.slice(2);
+  // Three tabs each side of the raised +.
+  const leftTabs = visibleRoutes.slice(0, 3);
+  const rightTabs = visibleRoutes.slice(3);
 
   return (
     <View
@@ -91,7 +93,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
           justifyContent: 'space-between',
           backgroundColor: t.colors.bgElevated,
           borderRadius: 999,
-          paddingHorizontal: 12,
+          paddingHorizontal: 8,
           paddingVertical: 8,
           borderWidth: 1,
           borderColor: t.colors.border,

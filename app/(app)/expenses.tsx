@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Screen } from '@/components/Screen';
+import { Header } from '@/components/Header';
 import { Text } from '@/components/Text';
 import { Card } from '@/components/Card';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
@@ -46,24 +47,7 @@ export default function Expenses() {
     <View style={{ flex: 1 }}>
       <Screen>
         <Reveal index={idx++}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Pressable
-              onPress={() => router.back()}
-              hitSlop={10}
-              accessibilityLabel="Back"
-              style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: t.colors.surface, borderWidth: 1, borderColor: t.colors.border, alignItems: 'center', justifyContent: 'center' }}
-            >
-              <ArrowLeft size={20} color={t.colors.text} strokeWidth={2.2} />
-            </Pressable>
-            <View style={{ flex: 1 }}>
-              <Text variant="bodySm" tone="muted" weight="medium">
-                Manage all spending
-              </Text>
-              <Text variant="h1" weight="bold" style={{ letterSpacing: -0.5 }}>
-                Expenses
-              </Text>
-            </View>
-          </View>
+          <Header title="Expenses" subtitle="Manage all spending" showBell={false} />
         </Reveal>
 
         {/* Total + breakdown */}
