@@ -9,9 +9,9 @@ import { Card } from '@/components/Card';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { DonutChart, DonutLegend } from '@/components/charts/DonutChart';
 import { Reveal, PressableScale } from '@/components/motion';
-import { Fab } from '@/components/Fab';
 import { AddExpenseSheet, EditExpenseSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { registerQuickAdd } from '@/utils/quickAdd';
 import type { ExpenseSlice } from '@/data/mock';
 import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { formatCurrency, relativeDate } from '@/data/format';
@@ -21,6 +21,9 @@ export default function Expenses() {
   const router = useRouter();
   const { expenses, removeExpense } = useStore();
   const [editExpense, setEditExpense] = useState<ExpenseSlice | null>(null);
+
+  // Center + on this screen adds an expense.
+  React.useEffect(() => registerQuickAdd('expenses', () => setAddOpen(true)), []);
   useRefreshOnFocus();
   const [addOpen, setAddOpen] = useState(false);
 
@@ -147,7 +150,6 @@ export default function Expenses() {
         </Card>
       </Screen>
 
-      <Fab icon={Plus} label="Add expense" onPress={() => setAddOpen(true)} />
       <AddExpenseSheet visible={addOpen} onClose={() => setAddOpen(false)} />
       <EditExpenseSheet visible={editExpense !== null} expense={editExpense} onClose={() => setEditExpense(null)} />
     </View>

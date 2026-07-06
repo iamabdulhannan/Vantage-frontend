@@ -5,18 +5,21 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { Text } from '../Text';
 import { SeriesPoint } from '@/data/mock';
 
-function smoothPath(pts: { x: number; y: number }[]) {
-  let d = `M ${pts[0].x} ${pts[0].y}`;
+function smoothPath(pts: { x: number; y: number }[], minY: number, maxY: number) {
+  // Catmull-Rom -> bezier, with control points clamped to the plot area so a
+  // sharp jump (0 -> big) can never overshoot below the axis / month labels.
+  const clamp = (y: number) => Math.min(maxY, Math.max(minY, y));
+  let d = `M ${pts[0].x} ${clamp(pts[0].y)}`;
   for (let i = 0; i < pts.length - 1; i++) {
     const p0 = pts[i - 1] ?? pts[i];
     const p1 = pts[i];
     const p2 = pts[i + 1];
     const p3 = pts[i + 2] ?? p2;
     const c1x = p1.x + (p2.x - p0.x) / 6;
-    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c1y = clamp(p1.y + (p2.y - p0.y) / 6);
     const c2x = p2.x - (p3.x - p1.x) / 6;
-    const c2y = p2.y - (p3.y - p1.y) / 6;
-    d += ` C ${c1x} ${c1y} ${c2x} ${c2y} ${p2.x} ${p2.y}`;
+    const c2y = clamp(p2.y - (p3.y - p1.y) / 6);
+    d += ` C ${c1x} ${c1y} ${c2x} ${c2y} ${p2.x} ${clamp(p2.y)}`;
   }
   return d;
 }
@@ -25,6 +28,8 @@ export function AreaChart({ data, height = 200 }: { data: SeriesPoint[]; height?
   const t = useTheme();
   const [w, setW] = React.useState(320);
   const padX = 6;
+  // Extra right padding so the end-point dot (r=11 glow) stays inside the card.
+  const padRight = 14;
   const padTop = 12;
   const padBottom = 26;
   const innerH = height - padTop - padBottom;
@@ -32,7 +37,7 @@ export function AreaChart({ data, height = 200 }: { data: SeriesPoint[]; height?
   const max = Math.max(...data.map((d) => Math.max(d.revenue, d.expense))) * 1.1;
   const min = 0;
   const range = max - min || 1;
-  const stepX = (w - padX * 2) / Math.max(1, data.length - 1);
+  const stepX = (w - padX - padRight) / Math.max(1, data.length - 1);
 
   const toPts = (key: 'revenue' | 'expense') =>
     data.map((d, i) => ({
@@ -42,8 +47,8 @@ export function AreaChart({ data, height = 200 }: { data: SeriesPoint[]; height?
 
   const revPts = toPts('revenue');
   const expPts = toPts('expense');
-  const revLine = smoothPath(revPts);
-  const expLine = smoothPath(expPts);
+  const revLine = smoothPath(revPts, padTop, padTop + innerH);
+  const expLine = smoothPath(expPts, padTop, padTop + innerH);
   const revArea = `${revLine} L ${revPts[revPts.length - 1].x} ${padTop + innerH} L ${revPts[0].x} ${padTop + innerH} Z`;
   const last = revPts[revPts.length - 1];
 
@@ -59,7 +64,7 @@ export function AreaChart({ data, height = 200 }: { data: SeriesPoint[]; height?
           </LinearGradient>
         </Defs>
         {gridLines.map((y, i) => (
-          <Line key={i} x1={padX} y1={y} x2={w - padX} y2={y} stroke={t.colors.divider} strokeWidth={1} />
+          <Line key={i} x1={padX} y1={y} x2={w - padRight} y2={y} stroke={t.colors.divider} strokeWidth={1} />
         ))}
         <Path d={revArea} fill="url(#revArea)" />
         <Path

@@ -25,18 +25,19 @@ export function Sparkline({
     y: pad + (height - pad * 2) * (1 - (d - min) / range),
   }));
 
-  // Smooth curve (Catmull-Rom -> cubic bezier)
-  let line = `M ${pts[0].x} ${pts[0].y}`;
+  // Smooth curve (Catmull-Rom -> cubic bezier), clamped inside the box.
+  const clampY = (y: number) => Math.min(height - pad, Math.max(pad, y));
+  let line = `M ${pts[0].x} ${clampY(pts[0].y)}`;
   for (let i = 0; i < pts.length - 1; i++) {
     const p0 = pts[i - 1] ?? pts[i];
     const p1 = pts[i];
     const p2 = pts[i + 1];
     const p3 = pts[i + 2] ?? p2;
     const c1x = p1.x + (p2.x - p0.x) / 6;
-    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c1y = clampY(p1.y + (p2.y - p0.y) / 6);
     const c2x = p2.x - (p3.x - p1.x) / 6;
-    const c2y = p2.y - (p3.y - p1.y) / 6;
-    line += ` C ${c1x} ${c1y} ${c2x} ${c2y} ${p2.x} ${p2.y}`;
+    const c2y = clampY(p2.y - (p3.y - p1.y) / 6);
+    line += ` C ${c1x} ${c1y} ${c2x} ${c2y} ${p2.x} ${clampY(p2.y)}`;
   }
   const area = `${line} L ${pts[pts.length - 1].x} ${height} L ${pts[0].x} ${height} Z`;
   const gid = `spark-${color.replace(/[^a-z0-9]/gi, '')}`;

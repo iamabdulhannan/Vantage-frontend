@@ -12,9 +12,9 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Field } from '@/components/Field';
 import { Sheet } from '@/components/Sheet';
-import { Fab } from '@/components/Fab';
 import { Reveal, PressableScale } from '@/components/motion';
 import { api } from '@/api/client';
+import { registerQuickAdd } from '@/utils/quickAdd';
 import { toast } from '@/components/Toast';
 import { validatePassword } from '@/utils/password';
 import { PasswordStrength } from '@/components/PasswordStrength';
@@ -36,6 +36,9 @@ export default function Team() {
   const [seats, setSeats] = useState<{ total: number; used: number; available: number }>({ total: 0, used: 0, available: 0 });
   const [addOpen, setAddOpen] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  // Center + on this screen invites a member.
+  useEffect(() => registerQuickAdd('team', () => setAddOpen(true)), []);
 
   const load = useCallback(() => {
     api.team
@@ -169,7 +172,6 @@ export default function Team() {
         </Card>
       </Screen>
 
-      <Fab icon={UserPlus} label="Add member" onPress={() => setAddOpen(true)} />
       <AddMemberSheet visible={addOpen} full={full} onClose={() => setAddOpen(false)} onAdded={load} />
     </View>
   );

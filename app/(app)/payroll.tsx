@@ -9,11 +9,11 @@ import { Card } from '@/components/Card';
 import { Avatar } from '@/components/Avatar';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
-import { Fab } from '@/components/Fab';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, ProgressBar, PressableScale } from '@/components/motion';
 import { AddEmployeeSheet, EmployeeSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { registerQuickAdd } from '@/utils/quickAdd';
 import { useCompany } from '@/data/company';
 import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { computePayroll, Employee } from '@/data/mock';
@@ -45,6 +45,9 @@ export default function Payroll() {
   const { company } = useCompany();
   useRefreshOnFocus();
   const [addOpen, setAddOpen] = useState(false);
+
+  // Center + on this tab adds an employee.
+  React.useEffect(() => registerQuickAdd('payroll', () => setAddOpen(true)), []);
   const [selected, setSelected] = useState<Employee | null>(null);
   const pay = computePayroll(employees, company?.country, company?.currencyCode);
   const allPaid = pay.pendingCount === 0;
@@ -156,7 +159,6 @@ export default function Payroll() {
         ))}
       </View>
     </Screen>
-    <Fab icon={UserPlus} label="Add employee" onPress={() => setAddOpen(true)} />
     <AddEmployeeSheet visible={addOpen} onClose={() => setAddOpen(false)} />
     <EmployeeSheet visible={selected !== null} employee={selected} onClose={() => setSelected(null)} />
     </View>

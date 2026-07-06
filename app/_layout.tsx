@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text as RNText } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence, Easing } from 'react-native-reanimated';
@@ -95,6 +95,14 @@ function ThemedLoader() {
 }
 
 export default function RootLayout() {
+  // Keep the branded splash on screen for a moment even when fonts load
+  // instantly - a blink-and-gone splash feels broken.
+  const [splashHold, setSplashHold] = useState(true);
+  useEffect(() => {
+    const id = setTimeout(() => setSplashHold(false), 2500);
+    return () => clearTimeout(id);
+  }, []);
+
   const [loaded] = useFonts({
     FiraSans_300Light,
     FiraSans_400Regular,
@@ -109,7 +117,7 @@ export default function RootLayout() {
         <ThemeProvider>
           <AuthProvider>
             <CompanyProvider>
-              <StoreProvider>{loaded ? <Gate /> : <ThemedLoader />}</StoreProvider>
+              <StoreProvider>{loaded && !splashHold ? <Gate /> : <ThemedLoader />}</StoreProvider>
             </CompanyProvider>
           </AuthProvider>
         </ThemeProvider>

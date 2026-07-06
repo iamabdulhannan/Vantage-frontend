@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Search, ChevronRight, ArrowDownLeft, ArrowUpRight, UserPlus } from 'lucide-react-native';
+import { Search, ChevronRight, ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Screen } from '@/components/Screen';
 import { Header } from '@/components/Header';
@@ -11,9 +11,9 @@ import { Avatar } from '@/components/Avatar';
 import { Segmented } from '@/components/Segmented';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, PressableScale } from '@/components/motion';
-import { Fab } from '@/components/Fab';
 import { AddCustomerSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { registerQuickAdd } from '@/utils/quickAdd';
 import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { formatCurrency, relativeDate } from '@/data/format';
 
@@ -25,6 +25,9 @@ export default function Ledgers() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
   const [addOpen, setAddOpen] = useState(false);
+
+  // Center + on this tab adds a customer.
+  React.useEffect(() => registerQuickAdd('ledgers', () => setAddOpen(true)), []);
 
   // DigiKhata semantics: balance > 0 => customer owes us ("You'll get"),
   // balance < 0 => we owe them / advance ("You'll give").
@@ -170,7 +173,6 @@ export default function Ledgers() {
         )}
       </Card>
     </Screen>
-    <Fab icon={UserPlus} label="Add customer" onPress={() => setAddOpen(true)} />
     <AddCustomerSheet visible={addOpen} onClose={() => setAddOpen(false)} />
     </View>
   );

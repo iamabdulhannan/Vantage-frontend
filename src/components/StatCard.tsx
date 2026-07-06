@@ -52,19 +52,7 @@ export function StatCard({ kpi }: { kpi: Kpi & { delta: number | null } }) {
             </Text>
           </View>
         ) : (
-          <View
-            style={{
-              backgroundColor: t.colors.surfaceAlt,
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-              borderRadius: t.radius.full,
-              alignSelf: 'flex-end',
-            }}
-          >
-            <Text variant="micro" weight="semibold" tone="subtle">
-              No history yet
-            </Text>
-          </View>
+          <View />
         )}
         {hasSpark && <Sparkline data={kpi.spark} color={accentColor} width={78} height={30} />}
       </View>

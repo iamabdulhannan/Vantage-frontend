@@ -16,6 +16,7 @@ import { Reveal, PressableScale, ProgressBar } from '@/components/motion';
 import { ConnectionBadge } from '@/components/ConnectionBadge';
 import { AddExpenseSheet } from '@/components/sheets';
 import { TourOverlay } from '@/components/TourOverlay';
+import { registerQuickAdd } from '@/utils/quickAdd';
 import { useStore } from '@/data/store';
 import { useAuth } from '@/auth/AuthContext';
 import { useCompany } from '@/data/company';
@@ -65,6 +66,9 @@ export default function Dashboard() {
   // Pull the fully-aggregated dashboard from the API when signed in live;
   // refetch after mutations. Falls back to local computation when offline.
   const [agg, setAgg] = useState<any | null>(null);
+
+  // Center + on the dashboard records an expense (also the global fallback).
+  useEffect(() => registerQuickAdd('dashboard', () => setExpenseOpen(true)), []);
   const loadAgg = useCallback(() => {
     if (!token || !isApiEnabled()) {
       setAgg(null);

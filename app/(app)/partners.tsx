@@ -7,11 +7,11 @@ import { Header } from '@/components/Header';
 import { Text } from '@/components/Text';
 import { Card } from '@/components/Card';
 import { Badge } from '@/components/Badge';
-import { Fab } from '@/components/Fab';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, PressableScale } from '@/components/motion';
 import { AddPartnerSheet, EditPartnerSheet } from '@/components/sheets';
 import { useStore } from '@/data/store';
+import { registerQuickAdd } from '@/utils/quickAdd';
 import { useRefreshOnFocus } from '@/data/useRefreshOnFocus';
 import { Partner } from '@/data/mock';
 import { formatCurrency, formatPercent } from '@/data/format';
@@ -30,6 +30,9 @@ export default function Partners() {
   useRefreshOnFocus();
   const [addOpen, setAddOpen] = useState(false);
   const [editPartner, setEditPartner] = useState<Partner | null>(null);
+
+  // Center + on this tab adds a partner.
+  React.useEffect(() => registerQuickAdd('partners', () => setAddOpen(true)), []);
   const totalRevenue = partners.reduce((s, p) => s + p.revenue, 0);
   const totalShare = partners.reduce((s, p) => s + p.share, 0);
   const activeCount = partners.filter((p) => p.status === 'active').length;
@@ -197,7 +200,6 @@ export default function Partners() {
         })}
       </View>
     </Screen>
-    <Fab icon={UserPlus} label="Add partner" onPress={() => setAddOpen(true)} />
     <AddPartnerSheet visible={addOpen} onClose={() => setAddOpen(false)} />
     <EditPartnerSheet visible={editPartner !== null} partner={editPartner} onClose={() => setEditPartner(null)} />
     </View>
