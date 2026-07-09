@@ -19,6 +19,8 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { useAuth } from '@/auth/AuthContext';
 import { useCompany } from '@/data/company';
 import { currencySymbol } from '@/data/format';
+import { getBiometricSupport, isBiometricEnabled, setBiometricEnabled, authenticateBiometric } from '@/utils/biometric';
+import { toast } from '@/components/Toast';
 import { Screen } from '@/components/Screen';
 import { Header } from '@/components/Header';
 import { Text } from '@/components/Text';
@@ -101,6 +103,34 @@ export default function Settings() {
   const [notif, setNotif] = useState(true);
   const [biometric, setBiometric] = useState(false);
 
+  // Load the real fingerprint-lock preference.
+  React.useEffect(() => {
+    isBiometricEnabled().then(setBiometric).catch(() => {});
+  }, []);
+
+  const onToggleBiometric = async (next: boolean) => {
+    if (!next) {
+      setBiometric(false);
+      await setBiometricEnabled(false);
+      toast.info('Fingerprint login turned off.');
+      return;
+    }
+    const support = await getBiometricSupport();
+    if (!support.available) {
+      toast.error('No fingerprint or face unlock is set up on this device.');
+      return;
+    }
+    // Confirm ownership once before enabling the lock.
+    const ok = await authenticateBiometric(`Enable ${support.label.toLowerCase()} login`);
+    if (!ok) {
+      toast.error('Could not verify - fingerprint login stays off.');
+      return;
+    }
+    setBiometric(true);
+    await setBiometricEnabled(true);
+    toast.success(`${support.label} login is on. The app will lock when you leave it.`);
+  };
+
   const profile = {
     name: user?.name ?? currentUser.name,
     email: user?.email ?? currentUser.email,
@@ -173,8 +203,8 @@ export default function Settings() {
         />
         <Row
           icon={Fingerprint}
-          label="Biometric login"
-          right={<Switch value={biometric} onValueChange={setBiometric} trackColor={switchTrack} thumbColor="#FFFFFF" />}
+          label="Fingerprint login"
+          right={<Switch value={biometric} onValueChange={onToggleBiometric} trackColor={switchTrack} thumbColor="#FFFFFF" />}
         />
       </Card>
 

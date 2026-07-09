@@ -16,6 +16,7 @@ import {
 } from '@expo-google-fonts/fira-sans';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { ToastHost } from '@/components/Toast';
+import { BiometricLock } from '@/components/BiometricLock';
 import { LogoMark } from '@/components/Logo';
 import { AuthProvider, useAuth } from '@/auth/AuthContext';
 import { CompanyProvider } from '@/data/company';
@@ -55,6 +56,7 @@ function Gate() {
         <Stack.Screen name="login" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="(app)" />
       </Stack>
+      <BiometricLock />
       <ToastHost />
     </>
   );
