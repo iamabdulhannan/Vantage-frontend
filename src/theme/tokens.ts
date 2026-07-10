@@ -158,20 +158,21 @@ export const radius = {
   full: 999,
 } as const;
 
+// One family app-wide: D-DIN Exp (same as the wider Orbiqon apps). It ships
+// in two weights (Regular, Bold), so light/regular/medium map to Regular and
+// semibold/bold map to Bold - the standard approach for a two-weight family.
 export const fonts = {
   // UI / prose
-  light: 'FiraSans_300Light',
-  regular: 'FiraSans_400Regular',
-  medium: 'FiraSans_500Medium',
-  semibold: 'FiraSans_600SemiBold',
-  bold: 'FiraSans_700Bold',
-  // One family app-wide: numeric text uses Fira Sans too (tabular figures
-  // via fontVariant where it matters). The old Fira Code clashed with RTL
-  // currency symbols and made the app feel stitched together.
-  monoRegular: 'FiraSans_400Regular',
-  monoMedium: 'FiraSans_500Medium',
-  monoSemibold: 'FiraSans_600SemiBold',
-  monoBold: 'FiraSans_700Bold',
+  light: 'DDinExp',
+  regular: 'DDinExp',
+  medium: 'DDinExp',
+  semibold: 'DDinExpBold',
+  bold: 'DDinExpBold',
+  // Numeric / data - same family; D-DIN has clean tabular figures.
+  monoRegular: 'DDinExp',
+  monoMedium: 'DDinExp',
+  monoSemibold: 'DDinExpBold',
+  monoBold: 'DDinExpBold',
 } as const;
 
 export const type = {

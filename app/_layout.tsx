@@ -6,14 +6,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import {
-  useFonts,
-  FiraSans_300Light,
-  FiraSans_400Regular,
-  FiraSans_500Medium,
-  FiraSans_600SemiBold,
-  FiraSans_700Bold,
-} from '@expo-google-fonts/fira-sans';
+import { useFonts } from 'expo-font';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { ToastHost } from '@/components/Toast';
 import { BiometricLock } from '@/components/BiometricLock';
@@ -105,12 +98,12 @@ export default function RootLayout() {
     return () => clearTimeout(id);
   }, []);
 
+  // Single app-wide family: D-DIN Exp (same as the wider Orbiqon apps).
+  // Two weights ship - Regular and Bold; the token map routes the five UI
+  // weights onto these two.
   const [loaded] = useFonts({
-    FiraSans_300Light,
-    FiraSans_400Regular,
-    FiraSans_500Medium,
-    FiraSans_600SemiBold,
-    FiraSans_700Bold,
+    DDinExp: require('../assets/fonts/D-DINExp.ttf'),
+    DDinExpBold: require('../assets/fonts/D-DINExp-Bold.ttf'),
   });
 
   return (
