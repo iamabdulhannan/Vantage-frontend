@@ -110,7 +110,7 @@ export default function Login() {
             />
           </View>
 
-          <Pressable hitSlop={8} style={{ alignSelf: 'flex-end' }}>
+          <Pressable hitSlop={8} style={{ alignSelf: 'flex-end' }} onPress={() => router.push('/forgot-password')} nativeID="forgot-link">
             <Text variant="bodySm" weight="semibold" tone="accent">
               Forgot password?
             </Text>

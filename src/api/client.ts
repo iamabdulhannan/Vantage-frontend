@@ -66,6 +66,10 @@ export const api = {
     register: (body: Record<string, unknown>) =>
       request('/auth/register', { method: 'POST', body, auth: false }),
     me: () => request('/auth/me'),
+    forgotPassword: (email: string) =>
+      request('/auth/forgot-password', { method: 'POST', body: { email }, auth: false }),
+    resetPassword: (body: { email: string; code: string; password: string }) =>
+      request('/auth/reset-password', { method: 'POST', body, auth: false }),
   },
   customers: {
     list: () => request('/customers'),

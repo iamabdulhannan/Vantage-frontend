@@ -47,6 +47,7 @@ function Gate() {
         <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
         <Stack.Screen name="setup" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="login" options={{ animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="forgot-password" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="(app)" />
       </Stack>
       <BiometricLock />
