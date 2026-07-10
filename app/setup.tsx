@@ -80,7 +80,7 @@ export default function Setup() {
   // Step 3 - team & billing
   const [teamSize, setTeamSize] = useState(TEAM_SIZES[1]);
   const [seats, setSeats] = useState(5);
-  const [plan, setPlan] = useState<'starter' | 'growth' | 'scale'>('growth');
+  const [plan, setPlan] = useState<'free' | 'starter' | 'growth' | 'scale'>('free');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
 
   const selectedCurrency = CURRENCIES.find((c) => c.code === currencyCode) ?? CURRENCIES[0];
@@ -406,7 +406,8 @@ export default function Setup() {
                   </View>
                 </View>
 
-                {/* Billing cycle */}
+                {/* Billing cycle (paid plans only) */}
+                {plan !== 'free' && (
                 <View style={{ gap: 8 }}>
                   <Text variant="bodySm" weight="medium" tone="muted">
                     Billing cycle
@@ -430,7 +431,10 @@ export default function Setup() {
                   </View>
                 </View>
 
-                {/* Seats stepper */}
+                )}
+
+                {/* Seats stepper (paid plans only) */}
+                {plan !== 'free' && (
                 <View style={{ gap: 8 }}>
                   <Text variant="bodySm" weight="medium" tone="muted">
                     Paid seats · min {selectedPlan.minSeats} on {selectedPlan.name}
@@ -452,6 +456,8 @@ export default function Setup() {
                     </PressableScale>
                   </View>
                 </View>
+
+                )}
 
                 {/* Plans */}
                 <View style={{ gap: 10 }}>
@@ -503,7 +509,21 @@ export default function Setup() {
                   })}
                 </View>
 
-                {/* Live order summary */}
+                {/* Free trial summary */}
+                {plan === 'free' && (
+                  <View style={{ backgroundColor: t.colors.accentSoft, borderRadius: t.radius.xl, padding: 18, gap: 8 }}>
+                    <Text variant="bodySm" weight="bold" tone="accent">
+                      Free for 7 days · no card needed
+                    </Text>
+                    <Text variant="caption" tone="muted">
+                      1 seat, full features. Shared statements carry a small sponsored message. Upgrade
+                      anytime from Settings to invite your team and remove ads.
+                    </Text>
+                  </View>
+                )}
+
+                {/* Live order summary (paid plans only) */}
+                {plan !== 'free' && (
                 <View style={{ backgroundColor: t.colors.surfaceAlt, borderRadius: t.radius.xl, padding: 18, gap: 12 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text variant="caption" tone="subtle" weight="semibold" style={{ letterSpacing: 0.5 }}>
@@ -549,6 +569,7 @@ export default function Setup() {
                     </Text>
                   </View>
                 </View>
+                )}
               </View>
             </Reveal>
           )}
@@ -563,7 +584,13 @@ export default function Setup() {
         {/* Sticky CTA */}
         <View style={{ paddingHorizontal: 24, paddingTop: 10, paddingBottom: kb > 0 ? 14 : insets.bottom + 14, borderTopWidth: 1, borderTopColor: t.colors.border, backgroundColor: t.colors.bg }}>
           <Button
-            label={step < LAST_STEP ? 'Continue' : `Create company · ${formatUSD(bill.dueNow)}`}
+            label={
+              step < LAST_STEP
+                ? 'Continue'
+                : plan === 'free'
+                ? 'Start free trial'
+                : `Create company · ${formatUSD(bill.dueNow)}`
+            }
             iconRight={step < LAST_STEP ? ArrowRight : Check}
             onPress={next}
             loading={submitting}

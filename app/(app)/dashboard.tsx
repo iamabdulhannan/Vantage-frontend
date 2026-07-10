@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Pressable } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { FileText, ArrowDownLeft, Flame, Hourglass, Users2, ArrowRight, Plus } from 'lucide-react-native';
+import { FileText, ArrowDownLeft, Flame, Hourglass, Users2, ArrowRight, Plus, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Screen } from '@/components/Screen';
 import { Header } from '@/components/Header';
@@ -145,6 +145,33 @@ export default function Dashboard() {
           <ConnectionBadge />
         </View>
       </Reveal>
+
+      {/* Free trial banner */}
+      {company?.plan === 'free' && (
+        <Reveal index={idx++}>
+          <Pressable onPress={() => router.push('/(app)/billing')} accessibilityRole="button" nativeID="trial-banner">
+            <Card elevation={1} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.colors.accentSoft, borderColor: t.colors.accent }}>
+              <Sparkles size={20} color={t.colors.accent} strokeWidth={2.2} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                {(() => {
+                  const daysLeft = company?.trialEndsAt
+                    ? Math.max(0, Math.ceil((new Date(company.trialEndsAt).getTime() - Date.now()) / (24 * 3600 * 1000)))
+                    : 0;
+                  return (
+                    <Text variant="bodySm" weight="semibold" tone="accent">
+                      {daysLeft > 0 ? `Free trial · ${daysLeft} day${daysLeft === 1 ? '' : 's'} left` : 'Your free trial has ended'}
+                    </Text>
+                  );
+                })()}
+                <Text variant="caption" tone="muted">
+                  Upgrade to invite your team and remove ads from shared statements.
+                </Text>
+              </View>
+              <ArrowRight size={18} color={t.colors.accent} strokeWidth={2.4} />
+            </Card>
+          </Pressable>
+        </Reveal>
+      )}
 
       {/* KPI grid */}
       <View style={{ gap: 12 }}>

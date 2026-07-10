@@ -11,6 +11,7 @@ import { Button } from '@/components/Button';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Reveal, PressableScale } from '@/components/motion';
 import { AddEntrySheet, EditEntrySheet, EditCustomerSheet, ReminderSheet } from '@/components/sheets';
+import { AdInterstitial } from '@/components/AdInterstitial';
 import { useStore } from '@/data/store';
 import { useCompany } from '@/data/company';
 import { shareStatement } from '@/utils/statement';
@@ -51,13 +52,14 @@ export default function LedgerDetail() {
   const t = useTheme();
   const router = useRouter();
   const { customers, setReminderStatus } = useStore();
-  const { name: companyName } = useCompany();
+  const { company, name: companyName } = useCompany();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [entryKind, setEntryKind] = useState<'gave' | 'got' | null>(null);
   const [editEntry, setEditEntry] = useState<LedgerEntry | null>(null);
   const [editCustomerOpen, setEditCustomerOpen] = useState(false);
   const [reminderOpen, setReminderOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [adOpen, setAdOpen] = useState(false);
   const customer = customers.find((c) => c.id === id);
 
   if (!customer) {
@@ -82,15 +84,24 @@ export default function LedgerDetail() {
   // (computed oldest-first in recalc), we only flip the display order.
   const rows = [...customer.ledger].reverse();
 
-  const onShare = async () => {
+  const onFreePlan = company?.plan === 'free';
+
+  const doShare = async () => {
     try {
       setSharing(true);
-      await shareStatement(customer, { companyName });
+      // Free tier: the shared PDF carries a sponsored block.
+      await shareStatement(customer, { companyName, showAd: onFreePlan });
     } catch {
       // ignore - user cancelled or share unavailable
     } finally {
       setSharing(false);
     }
+  };
+
+  // Free tier: a sponsored interstitial runs before the share sheet opens.
+  const onShare = () => {
+    if (onFreePlan) setAdOpen(true);
+    else void doShare();
   };
 
   let idx = 0;
@@ -385,6 +396,7 @@ export default function LedgerDetail() {
         customerId={customer.id}
         onClose={() => setEditEntry(null)}
       />
+      <AdInterstitial visible={adOpen} onClose={() => setAdOpen(false)} onContinue={() => void doShare()} />
       <ReminderSheet
         visible={reminderOpen}
         onClose={() => setReminderOpen(false)}

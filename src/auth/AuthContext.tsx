@@ -29,6 +29,7 @@ export interface CompanyProfile {
   plan: PlanKey;
   billingCycle: BillingCycle;
   billingSince: string;
+  trialEndsAt?: string | null;
 }
 
 export interface RegisterInput {
@@ -102,6 +103,7 @@ function mapCompany(c: any, u: any): CompanyProfile {
     plan: c.plan,
     billingCycle: c.billingCycle,
     billingSince: c.billingSince ? String(c.billingSince).slice(0, 10) : todayISO(),
+    trialEndsAt: c.trialEndsAt ? String(c.trialEndsAt) : null,
   };
 }
 

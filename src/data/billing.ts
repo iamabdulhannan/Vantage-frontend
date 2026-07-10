@@ -23,8 +23,9 @@ export function computeBilling(planKey: PlanKey, seatsInput: number, cycle: Bill
   // Annual: pay for 12 months minus the discount, expressed per seat.
   const annualPerSeat = Math.round(monthlyPerSeat * 12 * (1 - ANNUAL_DISCOUNT));
 
-  const monthlyTotal = Math.max(seats * monthlyPerSeat, BILLING_MIN);
-  const annualTotal = Math.max(seats * annualPerSeat, BILLING_MIN);
+  const isFree = plan.key === 'free';
+  const monthlyTotal = isFree ? 0 : Math.max(seats * monthlyPerSeat, BILLING_MIN);
+  const annualTotal = isFree ? 0 : Math.max(seats * annualPerSeat, BILLING_MIN);
 
   const dueNow = cycle === 'annual' ? annualTotal : monthlyTotal;
   const effectiveMonthly = cycle === 'annual' ? annualTotal / 12 : monthlyTotal;

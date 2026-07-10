@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ArrowLeft, UserPlus, User, Mail, Lock, Briefcase, Trash2, Crown } from 'lucide-react-native';
+import { ArrowLeft, UserPlus, User, Mail, Lock, Briefcase, Trash2, Crown, Sparkles } from 'lucide-react-native';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useAuth } from '@/auth/AuthContext';
 import { Screen } from '@/components/Screen';
@@ -31,14 +31,26 @@ interface Member {
 export default function Team() {
   const t = useTheme();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, company } = useAuth();
+  const onFreePlan = company?.plan === 'free';
   const [members, setMembers] = useState<Member[]>([]);
   const [seats, setSeats] = useState<{ total: number; used: number; available: number }>({ total: 0, used: 0, available: 0 });
   const [addOpen, setAddOpen] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  // Center + on this screen invites a member.
-  useEffect(() => registerQuickAdd('team', () => setAddOpen(true)), []);
+  // Center + on this screen invites a member (or nudges upgrade on the trial).
+  useEffect(
+    () =>
+      registerQuickAdd('team', () => {
+        if (company?.plan === 'free') {
+          toast.info('Team members are a paid feature. Upgrade to invite your team.');
+          router.push('/(app)/billing');
+        } else {
+          setAddOpen(true);
+        }
+      }),
+    [company?.plan, router],
+  );
 
   const load = useCallback(() => {
     api.team
@@ -95,7 +107,29 @@ export default function Team() {
           </View>
         </Reveal>
 
+        {/* Free plan: team is locked behind upgrade */}
+        {onFreePlan && (
+          <Reveal index={idx++}>
+            <Card elevation={2} style={{ gap: 12, alignItems: 'center', paddingVertical: 28 }}>
+              <View style={{ width: 54, height: 54, borderRadius: 16, backgroundColor: t.colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+                <Sparkles size={26} color={t.colors.accent} strokeWidth={2} />
+              </View>
+              <Text variant="h3" weight="bold" center>
+                Team members are a paid feature
+              </Text>
+              <Text variant="bodySm" tone="muted" center style={{ maxWidth: 280 }}>
+                Your free trial is single seat. Upgrade to Starter or Growth to invite your team,
+                each member gets their own login.
+              </Text>
+              <View style={{ width: '100%', marginTop: 6 }}>
+                <Button label="Upgrade plan" icon={Sparkles} onPress={() => router.push('/(app)/billing')} nativeID="upgrade-team" />
+              </View>
+            </Card>
+          </Reveal>
+        )}
+
         {/* Seat usage */}
+        {!onFreePlan && (
         <Reveal index={idx++}>
           <Card elevation={2} style={{ gap: 10 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -122,6 +156,7 @@ export default function Team() {
             </Text>
           </Card>
         </Reveal>
+        )}
 
         {/* Members */}
         <Card elevation={1} padded={false} style={{ overflow: 'hidden' }}>

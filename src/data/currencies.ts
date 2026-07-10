@@ -60,7 +60,7 @@ export const INDUSTRIES = [
   'Other',
 ];
 
-export type PlanKey = 'starter' | 'growth' | 'scale';
+export type PlanKey = 'free' | 'starter' | 'growth' | 'scale';
 export type BillingCycle = 'monthly' | 'annual';
 
 export interface Plan {
@@ -74,7 +74,17 @@ export interface Plan {
 
 // Billing is for the Vantage subscription itself - always priced in USD.
 // No free tier; the cheapest seat is $10/mo.
+export const TRIAL_DAYS = 7;
+
 export const PLANS: Plan[] = [
+  {
+    key: 'free',
+    name: 'Free',
+    blurb: `Try everything for ${TRIAL_DAYS} days`,
+    pricePerSeat: 0,
+    minSeats: 1,
+    features: ['Full khata, expenses & payroll', '1 seat only', 'Ads on shared statements'],
+  },
   {
     key: 'starter',
     name: 'Starter',
